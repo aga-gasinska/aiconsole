@@ -14,6 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 import { TopBar } from '@/components/top/TopBar';
@@ -23,6 +24,12 @@ import { MaterialTable } from './MaterialTable';
 
 export function MaterialsPage() {
   const materials = useAICStore((state) => state.materials);
+  const fetchMaterials = useAICStore((state) => state.fetchMaterials);
+
+  useEffect(() => {
+    fetchMaterials();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div className="App flex flex-col h-screen fixed top-0 left-0 bottom-0 right-0 bg-gray-800/95 text-stone-400">
