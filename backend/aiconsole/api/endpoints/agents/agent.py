@@ -23,8 +23,12 @@ from aiconsole.core.assets.agents.agent import Agent, AgentWithStatus
 from aiconsole.core.assets.asset import AssetLocation, AssetStatus, AssetType
 from aiconsole.core.gpt.consts import GPTMode
 from aiconsole.core.project import project
+from aiconsole.core.assets.asset import AssetType
+from aiconsole.core.project.paths import get_core_assets_directory, get_project_assets_directory
+from aiconsole.core.project.project import is_project_initialized
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+
 
 router = APIRouter()
 
@@ -81,3 +85,19 @@ async def agent_exists(request: Request, asset_id: str):
 @router.get("/{asset_id}/path")
 async def agent_path(request: Request, asset_id: str):
     return asset_path(AssetType.AGENT, request, asset_id)
+
+
+@router.get("/{asset_id}/image")
+async def profile_image(asset_id: str):
+    if is_project_initialized():
+        image_path = get_project_assets_directory(AssetType.AGENT) / f"{asset_id}.jpg"
+
+        if image_path.exists():
+            return FileResponse(str(image_path))
+
+    static_path = get_core_assets_directory(AssetType.AGENT) / f"{asset_id}.jpg"
+    if static_path.exists():
+        return FileResponse(str(static_path))
+
+    default_path = get_core_assets_directory(AssetType.AGENT) / "default.jpg"
+    return FileResponse(str(default_path))

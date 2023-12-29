@@ -19,7 +19,8 @@ from aiconsole.core.assets.asset import EditableObject
 
 from aiconsole.core.code_running.code_interpreters.language_map import LanguageStr
 from aiconsole.core.gpt.types import GPTRole
-from pydantic import BaseModel
+from aiconsole.core.settings.project_settings import get_aiconsole_settings
+from pydantic import BaseModel, Field, model_validator
 
 
 class AICToolCall(BaseModel):
@@ -40,10 +41,26 @@ class AICMessage(BaseModel):
 class AICMessageGroup(BaseModel):
     id: str
     agent_id: str
+    username: str | None = None
+    email: str | None = None
     role: GPTRole
     task: str
     materials_ids: list[str]
     messages: list[AICMessage]
+
+    @model_validator(mode="after")
+    def set_default_username(self):
+        role = self.role
+        if role == "user":
+            self.username = self.username or get_aiconsole_settings().get_username()
+        return self
+
+    @model_validator(mode="after")
+    def set_default_email(self):
+        role = self.role
+        if role == "user":
+            self.email = self.email or get_aiconsole_settings().get_email()
+        return self
 
 
 class ChatHeadline(EditableObject):

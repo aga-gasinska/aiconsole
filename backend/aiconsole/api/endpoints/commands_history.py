@@ -14,52 +14,61 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import json
 import os
 
 from aiconsole.consts import COMMANDS_HISTORY_JSON, HISTORY_LIMIT
 from aiconsole.core.chat.types import Command
 from aiconsole.core.project.paths import get_aic_directory
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+
+
+_log = logging.getLogger(__name__)
+
 
 router = APIRouter()
 
 
-@router.get("/commands/history")
-def get_history():
+def read_command_history() -> list[str]:
     file_path = os.path.join(get_aic_directory(), COMMANDS_HISTORY_JSON)
+    try:
+        if os.path.exists(file_path):
+            with open(file_path, "r") as f:
+                return json.load(f)
+        return []
+    except IOError as error:
+        _log.exception(f"Failed to read the command history file: {file_path}", exc_info=error)
+        raise HTTPException(status_code=500, detail=str(error))
 
-    if os.path.exists(file_path):
-        with open(file_path, "r") as f:
-            commands = json.load(f)
-    else:
-        commands = []
 
-    return commands
+def write_command_history(commands: list[str]):
+    file_path = os.path.join(get_aic_directory(), COMMANDS_HISTORY_JSON)
+    try:
+        with open(file_path, "w") as f:
+            json.dump(commands, f)
+    except IOError as error:
+        _log.exception(f"Failed to write the command history file: {file_path}", exc_info=error)
+        raise HTTPException(status_code=500, detail=str(error))
+
+
+@router.get("/commands/history")
+def get_history() -> list[str]:
+    """Fetches the history of sent commands."""
+    return read_command_history()
 
 
 @router.post("/commands/history")
-def save_history(command: Command):
+def save_history(command: Command) -> list[str]:
     """
     Saves the history of sent commands to <commands_history_dir>/<commands_history_json>
     """
-    file_path = os.path.join(get_aic_directory(), COMMANDS_HISTORY_JSON)
+    commands = read_command_history()
 
-    if os.path.exists(file_path):
-        with open(file_path, "r") as f:
-            commands = json.load(f)
-    else:
-        commands = []
+    commands = [item for item in commands if item.lower() != command.command.lower()]
 
     commands.append(command.command)
-
-    # remove non unique but keep the order, (but reverse it to remove the oldest first)
-    commands.reverse()
-    commands = list(dict.fromkeys(commands))
-    commands.reverse()
     commands = commands[-HISTORY_LIMIT:]
 
-    with open(file_path, "w") as f:
-        json.dump(commands, f)
-
+    write_command_history(commands)
     return commands

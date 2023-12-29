@@ -40,6 +40,8 @@ _log = logging.getLogger(__name__)
 class PartialSettingsData(BaseModel):
     code_autorun: bool | None = None
     openai_api_key: str | None = None
+    username: str | None = None
+    email: str | None = None
     materials: dict[str, AssetStatus] = {}
     materials_to_reset: list[str] = []
     agents: dict[str, AssetStatus] = {}
@@ -54,6 +56,8 @@ class PartialSettingsAndToGlobal(PartialSettingsData):
 class SettingsData(BaseModel):
     code_autorun: bool = False
     openai_api_key: str | None = None
+    username: str | None = None
+    email: str | None = None
     materials: dict[str, AssetStatus] = {}
     agents: dict[str, AssetStatus] = {}
 
@@ -166,6 +170,12 @@ class Settings:
     def get_openai_api_key(self) -> str | None:
         return self._settings.openai_api_key
 
+    def get_username(self) -> str | None:
+        return self._settings.username
+
+    def get_email(self) -> str | None:
+        return self._settings.email
+
     def set_code_autorun(self, code_autorun: bool, to_global: bool = False) -> None:
         self._settings.code_autorun = code_autorun
         self.save(PartialSettingsData(code_autorun=self._settings.code_autorun), to_global=to_global)
@@ -193,6 +203,8 @@ class Settings:
         settings_data = SettingsData(
             code_autorun=settings.get("settings", {}).get("code_autorun", False),
             openai_api_key=settings.get("settings", {}).get("openai_api_key", None),
+            username=settings.get("settings", {}).get("username", None),  # Load username
+            email=settings.get("settings", {}).get("email", None),  # Load email
             materials=materials,
             agents=agents,
         )
@@ -230,6 +242,9 @@ class Settings:
             global_file_path = self._global_settings_file_path
             file_path = self._global_settings_file_path
         else:
+            if settings_data.username is not None and settings_data.email is not None:
+                raise ValueError("Username and Email can only be saved in global settings")
+
             if not self._project_settings_file_path:
                 raise ValueError("Cannnot save to project settings file, because project is not initialized")
 
@@ -248,6 +263,12 @@ class Settings:
 
         if settings_data.openai_api_key is not None:
             doc_settings["openai_api_key"] = settings_data.openai_api_key
+
+        if settings_data.username is not None:
+            doc_settings["username"] = settings_data.username
+
+        if settings_data.email is not None:
+            doc_settings["email"] = settings_data.email
 
         for material in settings_data.materials_to_reset:
             if material in doc_materials:

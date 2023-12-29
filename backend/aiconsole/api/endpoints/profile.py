@@ -13,30 +13,33 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-import logging
-from aiconsole.core.assets.asset import AssetType
-from aiconsole.core.project.paths import get_core_assets_directory, get_project_assets_directory
-from aiconsole.core.project.project import is_project_initialized
+import requests
+from pydantic import BaseModel
 from fastapi import APIRouter
-from fastapi.responses import FileResponse
+from libgravatar import Gravatar
+
+
+class UserProfile(BaseModel):
+    username: str
+    avatar_url: str
+
 
 router = APIRouter()
 
-log = logging.getLogger(__name__)
 
+@router.get("/profile", response_model=UserProfile)
+async def profile(email: str):
+    gravatar = Gravatar(email)
+    url_profile_json = gravatar.get_profile(data_format="json")
+    response = requests.get(url_profile_json)
 
-@router.get("/profile/{image}")
-async def profile_image(image: str):
-    if is_project_initialized():
-        image_path = get_project_assets_directory(AssetType.AGENT) / image
+    if response.status_code == 200:
+        gravatar_data = response.json()
 
-        if image_path.exists():
-            return FileResponse(str(image_path))
-
-    static_path = get_core_assets_directory(AssetType.AGENT) / image
-    if static_path.exists():
-        return FileResponse(str(static_path))
-
-    default_path = get_core_assets_directory(AssetType.AGENT) / "default.jpg"
-    return FileResponse(str(default_path))
+        entry = gravatar_data["entry"][0]
+        user_profile = UserProfile(
+            username=entry.get("preferredUsername", ""), avatar_url=entry.get("thumbnailUrl", "")
+        )
+        return user_profile
+    else:
+        return UserProfile(username=f"{email}", avatar_url="https://gravatar.com/avatar/?d=mm")

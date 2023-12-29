@@ -19,19 +19,8 @@ import logging
 from logging import config
 from contextlib import asynccontextmanager
 import os
-from fastapi import FastAPI
-from aiconsole.core.project import project
-from aiconsole.core.settings import project_settings
 from aiconsole.consts import log_config
 from uvicorn import run
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    await project_settings.init()
-    if project.is_project_initialized():
-        await project.reinitialize_project()
-    yield
 
 
 config.dictConfig(log_config)

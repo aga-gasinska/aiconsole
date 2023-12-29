@@ -53,6 +53,8 @@ export type AICMessage = {
 export type AICMessageGroup = {
   id: string;
   agent_id: string;
+  username: string;
+  email: string;
   role: string;
   task: string;
   materials_ids: string[];
