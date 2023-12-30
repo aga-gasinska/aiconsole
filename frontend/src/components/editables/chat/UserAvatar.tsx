@@ -15,6 +15,9 @@ interface AvatarResponse {
   username: string;
 }
 
+// Global cache for avatar URLs
+const avatarCache = new Map();
+
 export function UserAvatar({ email, title, type, className }: UserAvatarProps) {
   const [avatarURL, setAvatarURL] = useState('');
   const getBaseURL = useAPIStore((state) => state.getBaseURL);
@@ -22,9 +25,16 @@ export function UserAvatar({ email, title, type, className }: UserAvatarProps) {
   useEffect(() => {
     const fetchAvatar = async () => {
       if (email) {
+        if (avatarCache.has(email)) {
+          setAvatarURL(avatarCache.get(email));
+          return;
+        }
+
         try {
           const response = await ky.get(`${getBaseURL()}/profile`, { searchParams: { email } }).json<AvatarResponse>();
           if (response.avatar_url) {
+            // Store in cache
+            avatarCache.set(email, response.avatar_url);
             setAvatarURL(response.avatar_url);
           }
         } catch (error) {

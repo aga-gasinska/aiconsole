@@ -28,7 +28,7 @@ router = APIRouter()
 
 
 @router.get("/profile", response_model=UserProfile)
-async def profile(email: str):
+def profile(email: str):
     gravatar = Gravatar(email)
     url_profile_json = gravatar.get_profile(data_format="json")
     response = requests.get(url_profile_json)
