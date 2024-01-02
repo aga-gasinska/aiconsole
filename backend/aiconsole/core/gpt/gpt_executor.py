@@ -16,12 +16,13 @@
 
 import asyncio
 import logging
+from typing import AsyncGenerator
 import litellm
 from aiconsole.core.gpt.partial import GPTPartialResponse
 from aiconsole.core.gpt.request import GPTRequest
-from aiconsole.api.websockets.outgoing_messages import DebugJSONWSMessage
+from aiconsole.api.websockets.server_messages import DebugJSONServerMessage
 from .exceptions import NoOpenAPIKeyException
-from .types import CLEAR_STR, GPTChoice, GPTResponse, GPTResponseMessage
+from .types import CLEAR_STR, CLEAR_STR_TYPE, GPTChoice, GPTResponse, GPTResponseMessage
 from openai import AuthenticationError
 from litellm.caching import Cache
 
@@ -47,7 +48,7 @@ class GPTExecutor:
         )
         self.partial_response = GPTPartialResponse()
 
-    async def execute(self, request: GPTRequest):
+    async def execute(self, request: GPTRequest) -> AsyncGenerator[litellm.ModelResponse | CLEAR_STR_TYPE, None]:
         request.validate_request()
 
         request_dict = {
@@ -84,7 +85,7 @@ class GPTExecutor:
                 self.response = self.partial_response.to_final_response()
 
                 if _log.isEnabledFor(logging.DEBUG):
-                    await DebugJSONWSMessage(
+                    await DebugJSONServerMessage(
                         message="GPT", object={"request": self.request, "response": self.response.model_dump()}
                     ).send_to_all()
 

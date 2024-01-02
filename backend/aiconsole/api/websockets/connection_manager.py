@@ -20,23 +20,32 @@ Connection manager for websockets. Keeps track of all active connections
 
 """
 
+from dataclasses import dataclass
 import logging
+from uuid import uuid4
 from fastapi import WebSocket
-from aiconsole.api.websockets.outgoing_messages import BaseWSMessage
+from aiconsole.api.websockets.server_messages import BaseServerMessage
 
 _log = logging.getLogger(__name__)
 _active_connections: list["AICConnection"] = []
 
 
+@dataclass(frozen=True)
+class AcquiredLock:
+    chat_id: str
+    request_id: str
+
+
 class AICConnection:
     _websocket: WebSocket
-    chat_id: str = ""
+    open_chats_ids: set[str] = set()
+    acquired_locks: list[AcquiredLock] = []
 
     def __init__(self, websocket: WebSocket):
         self._websocket = websocket
 
-    async def send(self, msg: BaseWSMessage):
-        await self._websocket.send_json({"type": msg.get_type(), **msg.model_dump()})
+    async def send(self, msg: BaseServerMessage):
+        await self._websocket.send_json({"type": msg.get_type(), **msg.model_dump(mode="json")})
 
 
 async def connect(websocket: WebSocket):
@@ -52,14 +61,17 @@ def disconnect(connection: AICConnection):
     _log.info("Disconnected")
 
 
-async def send_message_to_chat(chat_id: str, msg: BaseWSMessage):
+async def send_message_to_chat(
+    chat_id: str, msg: BaseServerMessage, source_connection_to_ommit: AICConnection | None = None
+):
     # _log.debug(f"Sending message to {chat_id}: {msg}")
     for connection in _active_connections:
-        if connection.chat_id == chat_id:
+        if chat_id in connection.open_chats_ids and connection != source_connection_to_ommit:
             await connection.send(msg)
 
 
-async def send_message_to_all(msg: BaseWSMessage):
+async def send_message_to_all(msg: BaseServerMessage, source_connection_to_ommit: AICConnection | None = None):
     # _log.debug(f"Sending message to all: {msg}")
     for connection in _active_connections:
-        await connection.send(msg)
+        if connection != source_connection_to_ommit:
+            await connection.send(msg)

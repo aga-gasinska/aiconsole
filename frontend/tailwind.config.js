@@ -14,6 +14,11 @@ export default {
     },
   },
   theme: {
+    screens: {
+      md: '800px',
+      xl: '1200px',
+      '2xl': '1440px'
+    },
     extend: {
        keyframes: {
         fadeInUp: {

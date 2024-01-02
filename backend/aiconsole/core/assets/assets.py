@@ -28,7 +28,7 @@ import watchdog.observers
 from aiconsole.core.project.paths import get_project_assets_directory
 from aiconsole.core.settings.project_settings import get_aiconsole_settings
 from aiconsole.utils.BatchingWatchDogHandler import BatchingWatchDogHandler
-from aiconsole.api.websockets.outgoing_messages import AssetsUpdatedWSMessage
+from aiconsole.api.websockets.server_messages import AssetsUpdatedServerMessage
 
 _log = logging.getLogger(__name__)
 
@@ -140,7 +140,7 @@ class Assets:
 
         self._assets = await load_all_assets(self.asset_type)
 
-        await AssetsUpdatedWSMessage(
+        await AssetsUpdatedServerMessage(
             initial=(
                 initial
                 or not (

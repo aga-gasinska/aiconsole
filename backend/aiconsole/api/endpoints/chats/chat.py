@@ -15,8 +15,8 @@
 # limitations under the License.
 
 from aiconsole.core.chat.types import Chat
-from aiconsole.core.chats.load_chat_history import load_chat_history
-from aiconsole.core.chats.save_chat_history import save_chat_history
+from aiconsole.core.chat.load_chat_history import load_chat_history
+from aiconsole.core.chat.save_chat_history import save_chat_history
 from aiconsole.core.project.paths import get_history_directory
 from fastapi import APIRouter, Response, status
 from fastapi.responses import JSONResponse
@@ -45,7 +45,7 @@ async def delete_history(chat_id: str):
 async def get_history(chat_id: str):
     chat = await load_chat_history(chat_id)
 
-    return JSONResponse(chat.model_dump())
+    return JSONResponse(chat.model_dump(mode="json"))
 
 
 @router.patch("/{chat_id}")

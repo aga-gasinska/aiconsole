@@ -14,24 +14,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+export type ProjectOpenedServerMessage = {
+  type: 'ProjectOpenedServerMessage';
+  name: string;
+  path: string;
+};
 
-export type ProjectOpenedWSMessage = {
-    type: 'ProjectOpenedWSMessage';
-    name: string;
-    path: string;
-  };
-  
-  export type ProjectClosedWSMessage = {
-    type: 'ProjectClosedWSMessage';
-  };
-  
-  export type ProjectLoadingWSMessage = {
-    type: 'ProjectLoadingWSMessage';
-  };
-  
-  export type InitialProjectStatusWSMessage = {
-    type: 'InitialProjectStatusWSMessage';
-    project_name?: string;
-    project_path?: string;
-  }
-  
+export type ProjectClosedServerMessage = {
+  type: 'ProjectClosedServerMessage';
+};
+
+export type ProjectLoadingServerMessage = {
+  type: 'ProjectLoadingServerMessage';
+};
+
+export type InitialProjectStatusServerMessage = {
+  type: 'InitialProjectStatusServerMessage';
+  project_name?: string;
+  project_path?: string;
+};

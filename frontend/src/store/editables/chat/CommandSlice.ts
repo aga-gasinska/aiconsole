@@ -93,20 +93,34 @@ export const createCommandSlice: StateCreator<ChatStore, [], [], CommandSlice> =
     await get().stopWork();
 
     if (command.trim() !== '') {
-      get().appendGroup({
-        agent_id: 'user',
-        task: '',
-        materials_ids: [],
-        role: 'user',
-        messages: [],
-      });
+      const chat = get().chat;
 
-      get().appendMessage({
-        id: uuid(),
-        content: command,
-        tool_calls: [],
-        is_streaming: false,
-      });
+      if (!chat) {
+        throw new Error('Chat is not initialized');
+      }
+
+      const messageGroupId = uuid();
+
+      get().userMutateChat([
+        {
+          type: 'CreateMessageGroupMutation',
+          message_group_id: messageGroupId,
+          agent_id: 'user',
+          username: '', //TODO: Where to get the user name from?
+          email: '', //TODO: Where to get the user email from?
+          task: '',
+          materials_ids: [],
+          analysis: '',
+          role: 'user',
+        },
+        {
+          type: 'CreateMessageMutation',
+          message_id: uuid(),
+          message_group_id: messageGroupId,
+          content: command,
+          timestamp: new Date().toISOString(),
+        },
+      ]);
 
       get().saveCommandAndMessagesToHistory(command, true);
     }
@@ -118,6 +132,6 @@ export const createCommandSlice: StateCreator<ChatStore, [], [], CommandSlice> =
       });
     }
 
-    await get().doAnalysis();
+    await get().doProcess();
   },
 });

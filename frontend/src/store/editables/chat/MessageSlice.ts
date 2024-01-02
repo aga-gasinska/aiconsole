@@ -16,28 +16,21 @@
 
 import { StateCreator } from 'zustand';
 
-import { AICToolCall, AICMessage, AICMessageGroup } from '@/types/editables/chatTypes';
+import { AICToolCall, AICMessage } from '@/types/editables/chatTypes';
 import { ChatStore } from './useChatStore';
-import {
-  deepCopyChat,
-  getGroup,
-  getLastGroup,
-  getLastMessage,
-  getMessage,
-  getToolCall,
-} from '@/utils/editables/chatUtils';
+import { deepCopyChat, getMessage, getToolCall } from '@/utils/editables/chatUtils';
+import { ChatMutation } from '@/api/ws/chat/chatMutations';
+import { applyMutation } from '@/api/ws/chat/applyMutation';
+import { useWebSocketStore } from '@/api/ws/useWebSocketStore';
+
 import { v4 as uuidv4 } from 'uuid';
 
 export type MessageSlice = {
   loadingMessages: boolean;
   isViableForRunningCode: (toolCallId: string) => boolean;
-  removeMessageFromGroup: (messageId: string) => void;
-  removeToolCallFromMessage: (outputId: string) => void;
-  editMessage: (change: (message: AICMessage) => void, messageId: string) => void;
-  editToolCall: (change: (output: AICToolCall) => void, outputId: string) => void;
-  appendToolCall: (toolCall: Omit<AICToolCall, 'timestamp'>, messageId?: string) => void;
-  appendGroup: (group: Omit<AICMessageGroup, 'id'>) => void;
-  appendMessage: (message: Omit<AICMessage, 'timestamp'>, groupId?: string) => void;
+  userMutateChat: (mutation: ChatMutation | ChatMutation[]) => Promise<void>;
+  lockChat: () => Promise<void>;
+  unlockChat: () => Promise<void>;
 };
 
 export const createMessageSlice: StateCreator<ChatStore, [], [], MessageSlice> = (set, get) => ({
@@ -62,51 +55,65 @@ export const createMessageSlice: StateCreator<ChatStore, [], [], MessageSlice> =
     }
   },
   loadingMessages: false,
-  removeMessageFromGroup: (messageId: string) => {
-    set((state) => {
-      const chat = deepCopyChat(state.chat);
-      const messageLocation = getMessage(chat, messageId);
+  lockChat: async () => {
+    const chat = get().chat;
 
-      if (!messageLocation || !chat) {
-        throw new Error('Message not found');
-      }
+    if (!chat) {
+      throw new Error('Chat is not initialized');
+    }
 
-      messageLocation.group.messages.splice(messageLocation.messageIndex, 1);
-
-      if (messageLocation.group.messages.length === 0) {
-        chat.message_groups.splice(chat.message_groups.indexOf(messageLocation.group), 1);
-      }
-
-      return {
-        chat,
-      };
+    //TODO: Wait for confirmation from server
+    useWebSocketStore.getState().sendMessage({
+      type: 'AcquireLockClientMessage',
+      request_id: uuidv4(),
+      chat_id: chat.id,
     });
-    get().saveCurrentChatHistory();
   },
-  removeToolCallFromMessage: (toolCallId: string) => {
-    set((state) => {
-      const chat = deepCopyChat(state.chat);
-      const toolCallLocation = getToolCall(chat, toolCallId);
+  unlockChat: async () => {
+    const chat = get().chat;
 
-      if (!toolCallLocation) {
-        throw new Error(`Tool Call with id ${toolCallId} not found`);
-      }
+    if (!chat) {
+      throw new Error('Chat is not initialized');
+    }
 
-      console.log(`Removing tool call ${toolCallId} from message ${toolCallLocation.message.id}`);
-      toolCallLocation.message.tool_calls.splice(toolCallLocation.toolCallIndex, 1);
-
-      if (toolCallLocation.message.tool_calls.length === 0 && toolCallLocation.message.content === '') {
-        toolCallLocation.group.messages.splice(toolCallLocation.messageIndex, 1);
-      }
-
-      return {
-        chat,
-      };
+    useWebSocketStore.getState().sendMessage({
+      type: 'ReleaseLockClientMessage',
+      request_id: uuidv4(),
+      chat_id: chat.id,
     });
-
-    get().saveCurrentChatHistory();
   },
-  editMessage: (change: (message: AICMessage) => void, messageId: string) => {
+  userMutateChat: async (mutation: ChatMutation | ChatMutation[]) => {
+    const mutations = Array.isArray(mutation) ? mutation : [mutation];
+    await get().lockChat();
+    try {
+      set((state) => {
+        const chat = deepCopyChat(state.chat);
+
+        if (!chat) {
+          throw new Error('Chat is not initialized');
+        }
+
+        for (const mutation of mutations) {
+          applyMutation(chat, mutation);
+
+          // send to server
+          useWebSocketStore.getState().sendMessage({
+            type: 'InitChatMutationClientMessage',
+            request_id: uuidv4(),
+            chat_id: chat.id,
+            mutation,
+          });
+        }
+
+        return {
+          chat,
+        };
+      });
+    } finally {
+      await get().unlockChat();
+    }
+  },
+  clientEditMessage: (change: (message: AICMessage) => void, messageId: string) => {
     set((state) => {
       const chat = deepCopyChat(state.chat);
       const messageLocation = getMessage(chat, messageId);
@@ -129,7 +136,7 @@ export const createMessageSlice: StateCreator<ChatStore, [], [], MessageSlice> =
       throw new Error('Chat is not initialized');
     }
   },
-  editToolCall: (change: (toolCall: AICToolCall) => void, toolCallId: string) => {
+  clientEditToolCall: (change: (toolCall: AICToolCall) => void, toolCallId: string) => {
     set((state) => {
       const chat = deepCopyChat(state.chat);
       const outputLocation = getToolCall(chat, toolCallId);
@@ -141,62 +148,6 @@ export const createMessageSlice: StateCreator<ChatStore, [], [], MessageSlice> =
       }
 
       if (change) change(outputLocation.toolCall);
-
-      return {
-        chat,
-      };
-    });
-  },
-  appendToolCall: (toolCall: AICToolCall, messageId?: string) => {
-    set((state) => {
-      const chat = deepCopyChat(state.chat);
-      const messageLocation = messageId === undefined ? getLastMessage(chat) : getMessage(chat, messageId);
-
-      if (!messageLocation) {
-        throw new Error(`Message with id ${messageId} is not a code message`);
-      }
-
-      messageLocation.message.tool_calls.push({
-        ...toolCall,
-      });
-
-      return {
-        chat,
-      };
-    });
-  },
-  appendGroup: (group: Omit<AICMessageGroup, 'id'>) => {
-    set((state) => {
-      const chat = deepCopyChat(state.chat);
-
-      if (!chat) {
-        throw new Error('Chat is not initialized');
-      }
-
-      chat.message_groups.push({
-        id: uuidv4(),
-        ...group,
-      });
-
-      return {
-        chat,
-      };
-    });
-  },
-  appendMessage: (message: Omit<AICMessage, 'timestamp'>, groupId?: string) => {
-    set((state) => {
-      const chat = deepCopyChat(state.chat);
-
-      const groupLocation = groupId === undefined ? getLastGroup(chat) : getGroup(chat, groupId);
-
-      if (!groupLocation) {
-        throw new Error('Group not found');
-      }
-
-      groupLocation.group.messages.push({
-        timestamp: new Date().toISOString(),
-        ...message,
-      });
 
       return {
         chat,

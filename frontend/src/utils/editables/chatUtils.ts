@@ -14,7 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { AICMessage, AICMessageGroup, AICToolCall as AICToolCall, Chat } from '@/types/editables/chatTypes';
+import { AICMessage, AICMessageGroup, AICToolCall, Chat } from '@/types/editables/chatTypes';
 
 export type AICGroupLocation = { groupIndex: number; group: AICMessageGroup };
 export type AICMessageLocation = AICGroupLocation & { messageIndex: number; message: AICMessage };
@@ -102,14 +102,14 @@ export function getMessage(chat: Chat | undefined, messageId: string): AICMessag
   }
 }
 
-export function getToolCall(chat: Chat | undefined, outputId: string): AICOutputLocaion | undefined {
+export function getToolCall(chat: Chat | undefined, toolCallId: string): AICOutputLocaion | undefined {
   let groupIndex = 0;
   for (const group of chat?.message_groups || []) {
     let messageIndex = 0;
     for (const message of group.messages) {
       let outputIndex = 0;
       for (const tool_call of message.tool_calls) {
-        if (tool_call.id === outputId) {
+        if (tool_call.id === toolCallId) {
           return {
             groupIndex,
             group,
@@ -140,7 +140,7 @@ function deepCopyMessage(message: AICMessage): AICMessage {
     const { tool_calls, ...rest } = message;
     return {
       ...rest,
-      tool_calls: tool_calls.map((toolCall) => deepCopyToolCall(toolCall)),
+      tool_calls: tool_calls.map((toolCall: AICToolCall) => deepCopyToolCall(toolCall)),
     };
   } else {
     return {
@@ -152,7 +152,7 @@ function deepCopyMessage(message: AICMessage): AICMessage {
 export function deepCopyGroups(groups: AICMessageGroup[]): AICMessageGroup[] {
   return groups.map((group) => ({
     ...group,
-    messages: group.messages.map((message) => deepCopyMessage(message)),
+    messages: group.messages.map((message: AICMessage) => deepCopyMessage(message)),
   }));
 }
 

@@ -52,7 +52,7 @@ function EmptyChatAgentAvatar({ agent }: { agent: Agent }) {
           },
         )}
       >
-        <AgentAvatar agentId={agent.id} type="small" />
+        <AgentAvatar agentId={agent.id} type="small" className="mb-[10px] mt-[5px]" />
         <p className="text-[15px] text-center">{agent.name}</p>
       </div>
     </ContextMenu>

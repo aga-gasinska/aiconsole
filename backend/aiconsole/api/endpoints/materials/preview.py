@@ -27,20 +27,24 @@ from aiconsole.core.assets.materials.material import Material
 router = APIRouter()
 
 
+def create_user_agent():
+    return Agent(
+        id="user",
+        name="You",
+        usage="",
+        usage_examples=[],
+        system="",
+        defined_in=AssetLocation.AICONSOLE_CORE,
+        gpt_mode=GPTMode.QUALITY,
+        override=False,
+    )
+
+
 @router.post("/preview")
 async def materials_preview(material: Material):
     content_context = ContentEvaluationContext(
         chat=Chat(id="chat", name="", last_modified=datetime.now(), title_edited=False, message_groups=[]),
-        agent=Agent(
-            id="user",
-            name="You",
-            usage="",
-            usage_examples=[],
-            system="",
-            defined_in=AssetLocation.AICONSOLE_CORE,
-            gpt_mode=GPTMode.QUALITY,
-            override=False,
-        ),
+        agent=create_user_agent(),
         gpt_mode=GPTMode.SPEED,
         relevant_materials=[],
     )

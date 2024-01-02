@@ -32,12 +32,11 @@
 # https://github.com/KillianLucas/open-interpreter
 #
 
-from typing import Literal, Type
+from typing import Type
+from aiconsole.core.code_running.code_interpreters.language import LanguageStr
 from aiconsole.core.code_running.code_interpreters.base_code_interpreter import BaseCodeInterpreter
 from .languages.python import Python
 from .languages.applescript import AppleScript
-
-LanguageStr = Literal["python"] | Literal["applescript"]
 
 language_map: dict[LanguageStr, Type[BaseCodeInterpreter]] = {
     "python": Python,

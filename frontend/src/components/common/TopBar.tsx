@@ -32,7 +32,7 @@ export function TopBar({ children }: React.PropsWithChildren<TopBarProps>) {
   const openSettings = useOpenSettings();
 
   return (
-    <div className="flex w-full px-[20px] py-[7px] border-b bg-transparent shadow-md border-gray-600 relative z-40 h-[80px]">
+    <div className="flex w-full px-[20px] py-[7px] border-b bg-transparent shadow-md border-gray-600 relative z-40 h-[80px] min-h-[80px]">
       <div className="flex gap-2 w-full items-center">
         {children}
         <ContextMenu options={menuItems} ref={triggerRef} triggerClassName="ml-auto">

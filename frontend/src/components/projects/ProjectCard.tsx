@@ -15,27 +15,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { cn } from '@/utils/common/cn';
-import { Button } from '@/components/common/Button';
 import { useRecentProjectsStore } from '@/store/projects/useRecentProjectsStore';
-import {
-  Blocks,
-  Copy,
-  Edit,
-  EyeOff,
-  LucideIcon,
-  MessageSquare,
-  MoreVertical,
-  ScanText,
-  StickyNote,
-  Trash,
-} from 'lucide-react';
+import { ContextMenuItems } from '@/types/common/contextMenu';
+import { cn } from '@/utils/common/cn';
+import { LucideIcon, MoreVertical, Trash } from 'lucide-react';
 import { MouseEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useProjectStore } from '../../store/projects/useProjectStore';
-import { Icon } from '../common/icons/Icon';
 import { ContextMenu, ContextMenuRef } from '../common/ContextMenu';
-import { ContextMenuItems } from '@/types/common/contextMenu';
-import { AgentAvatar } from '../editables/chat/AgentAvatar';
+import { Icon } from '../common/icons/Icon';
 
 const MAX_CHATS_TO_DISPLAY = 3;
 interface CounterItemProps {
@@ -151,7 +138,7 @@ export function ProjectCard({ name, path, chatHistory }: ProjectCardProps) {
     <ContextMenu options={contextMenuItems} ref={triggerRef} onOpenChange={handleOpenContextChange}>
       <div
         className={cn(
-          'group border-2 border-gray-600 p-[30px] pb-[20px] rounded-[20px] max-w-[435px] w-full transition-bg duration-150  cursor-pointer bg-gray-900 hover:bg-project-item-gradient min-h-[240px]',
+          'group border-2 border-gray-600 p-[30px] pb-[20px] rounded-[20px] w-full transition-bg duration-150  cursor-pointer bg-gray-900 hover:bg-project-item-gradient min-h-[240px]',
           {
             'bg-project-item-gradient': isShowingContext,
           },

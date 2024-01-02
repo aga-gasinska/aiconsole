@@ -34,19 +34,21 @@ export function Home() {
         {openAiApiKey === undefined || isProjectLoading ? (
           <>{/* the request is in progress - don't render anything to avoid flickering */}</>
         ) : (
-          <>
+          <div className="h-screen max-h-screen overflow-hidden flex flex-col">
             {recentProjects.length > 0 && openAiApiKey && isApiKeyValid ? (
               <>
                 <TopBar>
                   <HomeTopBarElements />
                 </TopBar>
-                <div className="px-[60px] py-[40px] text-white ">
-                  <img src="favicon.png" className="shadows-lg w-[60px] h-[60px] mx-auto m-4" alt="Logo" />
-                  <h1 className="text-[56px] mb-[60px] font-black text-center">
-                    Welcome to <span className=" text-primary">AIConsole!</span>
-                  </h1>
-                  <div className="p-4 pb-8 text-center opacity-75">Recent projects:</div>
-                  <div className="grid grid-flow-row-dense grid-cols-[repeat(auto-fit,minmax(355px,_435px))] justify-center gap-[20px] mx-auto">
+                <div className="px-5 pb-10 pt-[40px] flex-1 flex flex-col grow overflow-hidden">
+                  <div className="px-[60px] text-white ">
+                    <img src="favicon.png" className="shadows-lg w-[60px] h-[60px] mx-auto m-4" alt="Logo" />
+                    <h1 className="text-[32px] md:text-[38px] xl:text-[42px] 2xl:text-[56px] mb-[50px] font-black text-center">
+                      Welcome to <span className=" text-primary">AIConsole!</span>
+                    </h1>
+                    <div className="px-4 pb-[30px] text-center opacity-75 text-gray-400">Recent projects:</div>
+                  </div>
+                  <div className="w-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 justify-items-stretch gap-[20px] mx-auto overflow-auto pr-5">
                     {recentProjects.map(({ name, path, recent_chats }) => (
                       <ProjectCard key={path} name={name} path={path} chatHistory={recent_chats} />
                     ))}
@@ -58,7 +60,7 @@ export function Home() {
             {!recentProjects.length || !openAiApiKey || !isApiKeyValid ? (
               <RecentProjectsEmpty openAiApiKey={openAiApiKey} isApiKeyValid={isApiKeyValid} />
             ) : null}
-          </>
+          </div>
         )}
       </div>
     </div>

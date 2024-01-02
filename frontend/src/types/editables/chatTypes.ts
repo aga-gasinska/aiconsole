@@ -1,72 +1,96 @@
-// The AIConsole Project
-//
-// Copyright 2023 10Clouds
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+import { z } from 'zod';
+import { EditableObjectSchema, GPTRoleSchema } from './assetTypes'; // Import necessary types and schemas
 
-import { EditableObject } from './assetTypes';
+export const AICToolCallSchema = z.object({
+  id: z.string(),
+  language: z.string().optional(),
+  is_executing: z.boolean(),
+  is_streaming: z.boolean(),
+  code: z.string(),
+  headline: z.string(),
+  output: z.string().optional(),
+});
 
-// The AIConsole Project
-//
-// Copyright 2023 10Clouds
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+export type AICToolCall = z.infer<typeof AICToolCallSchema>;
 
-export type AICToolCall = {
-  id: string;
-  language: string;
-  is_code_executing: boolean; //HACK: For now this is frontend only, but if we move message management to backend, this should be moved there as well.
-  is_streaming: boolean; //HACK: For now this is frontend only, but if we move message management to backend, this should be moved there as well.
-  code: string;
-  headline: string;
-  output?: string;
-};
+export const AICMessageSchema = z.object({
+  id: z.string(),
+  timestamp: z.string(),
+  content: z.string(),
+  tool_calls: z.array(AICToolCallSchema),
+  is_streaming: z.boolean(),
+});
 
-export type AICMessage = {
-  id: string;
-  timestamp: string;
-  content: string;
-  tool_calls: AICToolCall[];
-  is_streaming: boolean; //HACK: For now this is frontend only, but if we move message management to backend, this should be moved there as well.
-};
+export type AICMessage = z.infer<typeof AICMessageSchema>;
 
-export type AICMessageGroup = {
-  id: string;
-  agent_id: string;
-  username: string;
-  email: string;
-  role: string;
-  task: string;
-  materials_ids: string[];
-  messages: AICMessage[];
-};
+export const AICMessageGroupSchema = z.object({
+  id: z.string(),
+  agent_id: z.string(),
+  username: z.string(),
+  email: z.string(),
+  role: GPTRoleSchema,
+  task: z.string(),
+  materials_ids: z.array(z.string()),
+  messages: z.array(AICMessageSchema),
+  analysis: z.string(),
+});
 
-export type ChatHeadline = EditableObject & {
-  last_modified: string;
-};
+export type AICMessageGroup = z.infer<typeof AICMessageGroupSchema>;
 
-export type Chat = EditableObject & {
-  title_edited: boolean;
-  last_modified: string;
-  message_groups: AICMessageGroup[];
-};
+export const ChatHeadlineSchema = EditableObjectSchema.extend({
+  last_modified: z.string(),
+});
+
+export type ChatHeadline = z.infer<typeof ChatHeadlineSchema>;
+
+export const ChatSchema = EditableObjectSchema.extend({
+  lock_id: z.string(),
+  title_edited: z.boolean(),
+  last_modified: z.string(),
+  message_groups: z.array(AICMessageGroupSchema),
+  is_analysis_in_progress: z.boolean(),
+});
+
+export type Chat = z.infer<typeof ChatSchema>;
+
+// Helper functions
+
+export function getMessageGroup(chat: Chat, message_group_id: string) {
+  for (const group of chat.message_groups) {
+    if (group.id === message_group_id) {
+      return group;
+    }
+  }
+  throw new Error(`Message group ${message_group_id} not found`);
+}
+
+export function getMessageLocation(chat: Chat, message_id: string) {
+  for (const group of chat.message_groups) {
+    for (const message of group.messages) {
+      if (message.id === message_id) {
+        return {
+          group,
+          message,
+        };
+      }
+    }
+  }
+  throw new Error(`Message ${message_id} not found`);
+}
+
+export function getToolCallLocation(chat: Chat, tool_call_id: string) {
+  for (const group of chat.message_groups) {
+    for (const message of group.messages) {
+      for (const tool_call of message.tool_calls) {
+        if (tool_call.id === tool_call_id) {
+          return {
+            group,
+            message,
+            tool_call,
+          };
+        }
+      }
+    }
+  }
+  throw new Error(`Tool call ${tool_call_id} not found`);
+}

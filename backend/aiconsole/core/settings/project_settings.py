@@ -84,7 +84,7 @@ class Settings:
 
     async def reload(self, initial: bool = False):
         self._settings = await self.__load()
-        await SettingsWSMessage(
+        await SettingsServerMessage(
             initial=initial
             or not self._suppress_notification_until
             or self._suppress_notification_until < datetime.datetime.now()

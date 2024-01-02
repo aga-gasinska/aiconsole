@@ -17,6 +17,7 @@
 import { useEditablesStore } from '@/store/editables/useEditablesStore';
 import useGroupByDate from '@/utils/editables/useGroupByDate';
 import SideBarItem from './SideBarItem';
+import ChatOptions from '../assets/ChatOptions';
 
 export const ChatsSidebarTab = () => {
   const chatHeadlines = useEditablesStore((state) => state.chats);
@@ -30,18 +31,26 @@ export const ChatsSidebarTab = () => {
   ];
 
   return (
-    <div className="flex flex-col gap-[5px] pr-[20px] overflow-y-auto h-full max-h-[calc(100vh-210px)] ">
-      {sections.map(
-        (section) =>
-          section.headlines.length > 0 && (
-            <div key={section.title}>
-              <h3 className="uppercase px-[9px] py-[5px] text-gray-400 text-[12px] leading-[18px]">{section.title}</h3>
-              {section.headlines.map((chat) => (
-                <SideBarItem key={chat.id} editableObject={chat} editableObjectType="chat" />
-              ))}
-            </div>
-          ),
-      )}
+    <div className="flex flex-col justify-between content-between pr-[20px] overflow-y-auto h-full">
+      <div className="overflow-y-auto mb-5 min-h-[100px]">
+        {sections.map(
+          (section) =>
+            section.headlines.length > 0 && (
+              <div key={section.title}>
+                <h3 className="uppercase px-[9px] py-[5px] text-gray-400 text-[12px] leading-[18px]">
+                  {section.title}
+                </h3>
+                {section.headlines.map((chat) => (
+                  <SideBarItem key={chat.id} editableObject={chat} editableObjectType="chat" />
+                ))}
+              </div>
+            ),
+        )}
+      </div>
+
+      <div className="w-full h-[375px] lg:h-[465px]">
+        <ChatOptions />
+      </div>
     </div>
   );
 };
