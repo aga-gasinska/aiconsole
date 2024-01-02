@@ -15,24 +15,22 @@
 # limitations under the License.
 import datetime
 import logging
-from pathlib import Path
-from typing import Any
-
-import litellm
 import tomlkit
-import tomlkit.container
-import tomlkit.exceptions
-from aiconsole.api.websockets.outgoing_messages import SettingsWSMessage
-from aiconsole.core.assets.asset import AssetStatus, AssetType
+import litellm
+from pathlib import Path
+from appdirs import user_config_dir
+
+from pydantic import BaseModel, EmailStr, validator
+
+from watchdog.observers import Observer
+from aiconsole.utils.BatchingWatchDogHandler import BatchingWatchDogHandler
+
 from aiconsole.core.project import project
 from aiconsole.core.project.paths import get_project_directory
-from aiconsole.core.project.project import is_project_initialized
-from aiconsole.utils.BatchingWatchDogHandler import BatchingWatchDogHandler
+from aiconsole.api.websockets.outgoing_messages import SettingsWSMessage
+from aiconsole.core.assets.asset import AssetStatus, AssetType
 from aiconsole.utils.recursive_merge import recursive_merge
-from appdirs import user_config_dir
-from pydantic import BaseModel
-from tomlkit import TOMLDocument
-from watchdog.observers import Observer
+
 
 _log = logging.getLogger(__name__)
 
@@ -40,8 +38,7 @@ _log = logging.getLogger(__name__)
 class PartialSettingsData(BaseModel):
     code_autorun: bool | None = None
     openai_api_key: str | None = None
-    username: str | None = None
-    email: str | None = None
+    user_profile_settings: "UserProfileSettingsData | None" = None
     materials: dict[str, AssetStatus] = {}
     materials_to_reset: list[str] = []
     agents: dict[str, AssetStatus] = {}
@@ -49,79 +46,61 @@ class PartialSettingsData(BaseModel):
     to_global: bool = False
 
 
-class PartialSettingsAndToGlobal(PartialSettingsData):
-    to_global: bool = False
+class UserProfileSettingsData(BaseModel):
+    username: str | None = None
+    email: EmailStr | None = None
+    avatar_path: str | None = None
+    gravatar: bool = False
 
 
 class SettingsData(BaseModel):
     code_autorun: bool = False
     openai_api_key: str | None = None
-    username: str | None = None
-    email: str | None = None
+    user_profile_settings: UserProfileSettingsData = UserProfileSettingsData()
     materials: dict[str, AssetStatus] = {}
     agents: dict[str, AssetStatus] = {}
 
-
-def _load_from_path(file_path: Path) -> dict[str, Any]:
-    with file_path.open() as file:
-        document = tomlkit.loads(file.read())
-
-    return dict(document)
+    @validator("user_profile", pre=True, always=True)
+    def create_user_profile_default(cls, v):
+        return v or UserProfileSettingsData()
 
 
 def _set_openai_api_key_environment(settings: SettingsData) -> None:
-    openai_api_key = settings.openai_api_key
-
-    # This is so we make sure that it's overiden and does not env variables etc
-    litellm.openai_key = openai_api_key or "invalid key"
+    litellm.openai_key = settings.openai_api_key or "invalid key"
 
 
 class Settings:
     def __init__(self, project_path: Path | None = None):
-        self._suppress_notification_until = None
-        self._settings = SettingsData()
-
-        self._global_settings_file_path = Path(user_config_dir("aiconsole")) / "settings.toml"
-
-        if project_path:
-            self._project_settings_file_path = project_path / "settings.toml"
-        else:
-            self._project_settings_file_path = None
-
+        self.settings_data: SettingsData = SettingsData()
+        self._global_settings_file_path: Path = Path(user_config_dir("aiconsole")) / "settings.toml"
+        self._project_settings_file_path: Path | None = project_path / "settings.toml" if project_path else None
         self._observer = Observer()
 
-        self._global_settings_file_path.parent.mkdir(parents=True, exist_ok=True)
-        self._observer.schedule(
-            BatchingWatchDogHandler(self.reload, self._global_settings_file_path.name),
-            str(self._global_settings_file_path.parent),
-            recursive=True,
-        )
-
+        self._setup_observer(self._global_settings_file_path)
         if self._project_settings_file_path:
-            self._project_settings_file_path.parent.mkdir(parents=True, exist_ok=True)
-            self._observer.schedule(
-                BatchingWatchDogHandler(self.reload, self._project_settings_file_path.name),
-                str(self._project_settings_file_path.parent),
-                recursive=True,
-            )
+            self._setup_observer(self._project_settings_file_path)
 
         self._observer.start()
-
-    def model_dump(self) -> dict[str, Any]:
-        return self._settings.model_dump()
-
-    def stop(self):
-        self._observer.stop()
 
     async def reload(self, initial: bool = False):
         self._settings = await self.__load()
         await SettingsWSMessage(
             initial=initial
-            or not (
-                not self._suppress_notification_until or self._suppress_notification_until < datetime.datetime.now()
-            )
+            or not self._suppress_notification_until
+            or self._suppress_notification_until < datetime.datetime.now()
         ).send_to_all()
         self._suppress_notification_until = None
+
+    def _setup_observer(self, path: Path):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        self._observer.schedule(
+            BatchingWatchDogHandler(self.reload, path.name),
+            str(path.parent),
+            recursive=False,
+        )
+
+    def stop(self):
+        self._observer.stop()
 
     def get_asset_status(self, asset_type: AssetType, id: str) -> AssetStatus:
         s = self._settings
@@ -142,6 +121,14 @@ class Settings:
         else:
             raise ValueError(f"Unknown asset type {asset_type}")
 
+    def set_asset_status(self, asset_type: AssetType, id: str, status: AssetStatus, to_global: bool = False) -> None:
+        if asset_type == AssetType.MATERIAL:
+            self.save(PartialSettingsData(materials={id: status}), to_global=to_global)
+        elif asset_type == AssetType.AGENT:
+            self.save(PartialSettingsData(agents={id: status}), to_global=to_global)
+        else:
+            raise ValueError(f"Unknown asset type {asset_type}")
+
     def rename_asset(self, asset_type: AssetType, old_id: str, new_id: str):
         if asset_type == AssetType.MATERIAL:
             partial_settings = PartialSettingsData(
@@ -156,154 +143,74 @@ class Settings:
 
         self.save(partial_settings, to_global=True)
 
-    def set_asset_status(self, asset_type: AssetType, id: str, status: AssetStatus, to_global: bool = False) -> None:
-        if asset_type == AssetType.MATERIAL:
-            self.save(PartialSettingsData(materials={id: status}), to_global=to_global)
-        elif asset_type == AssetType.AGENT:
-            self.save(PartialSettingsData(agents={id: status}), to_global=to_global)
-        else:
-            raise ValueError(f"Unknown asset type {asset_type}")
-
-    def get_code_autorun(self) -> bool:
-        return self._settings.code_autorun
-
-    def get_openai_api_key(self) -> str | None:
-        return self._settings.openai_api_key
-
-    def get_username(self) -> str | None:
-        return self._settings.username
-
-    def get_email(self) -> str | None:
-        return self._settings.email
-
-    def set_code_autorun(self, code_autorun: bool, to_global: bool = False) -> None:
-        self._settings.code_autorun = code_autorun
-        self.save(PartialSettingsData(code_autorun=self._settings.code_autorun), to_global=to_global)
-
     async def __load(self) -> SettingsData:
         settings = {}
-        paths = [self._global_settings_file_path, self._project_settings_file_path]
-
-        for file_path in paths:
+        for file_path in [self._global_settings_file_path, self._project_settings_file_path]:
             if file_path and file_path.exists():
-                settings = recursive_merge(settings, _load_from_path(file_path))
-
-        forced_agents = [agent for agent, status in settings.get("agents", {}).items() if status == AssetStatus.FORCED]
-
-        settings_materials = settings.get("materials", {})
-
-        materials = {}
-        for material, status in settings_materials.items():
-            materials[material] = AssetStatus(status)
-
-        agents = {}
-        for agent, status in settings.get("agents", {}).items():
-            agents[agent] = AssetStatus(status)
+                settings = recursive_merge(settings, self._load_from_path(file_path))
 
         settings_data = SettingsData(
-            code_autorun=settings.get("settings", {}).get("code_autorun", False),
-            openai_api_key=settings.get("settings", {}).get("openai_api_key", None),
-            username=settings.get("settings", {}).get("username", None),  # Load username
-            email=settings.get("settings", {}).get("email", None),  # Load email
-            materials=materials,
-            agents=agents,
+            **{key: settings.get(key, getattr(SettingsData(), key)) for key in SettingsData.model_fields.keys()}
         )
 
-        # Enforce only one forced agent
-        if len(forced_agents) > 1:
-            _log.warning(f"More than one agent is forced: {forced_agents}")
-            for agent in forced_agents[1:]:
-                settings_data.agents[agent] = AssetStatus.ENABLED
-
+        self.enforce_single_forced_agent(settings_data)
         _set_openai_api_key_environment(settings_data)
 
         _log.info("Loaded settings")
         return settings_data
 
     @staticmethod
-    def __get_tolmdocument_to_save(file_path: Path) -> TOMLDocument:
-        if not file_path.exists():
-            document = tomlkit.document()
-            document["settings"] = tomlkit.table()
-            document["materials"] = tomlkit.table()
-            document["agents"] = tomlkit.table()
-            return document
+    def enforce_single_forced_agent(settings_data: SettingsData):
+        forced_agents = [agent for agent, status in settings_data.agents if status == AssetStatus.FORCED]
 
+        if len(forced_agents) > 1:
+            _log.warning(f"More than one agent is forced: {forced_agents}")
+            for agent in forced_agents[1:]:
+                settings_data.agents[agent] = AssetStatus.ENABLED
+
+    @staticmethod
+    def _load_from_path(file_path: Path) -> dict:
         with file_path.open() as file:
             document = tomlkit.loads(file.read())
-            for section in ["settings", "materials", "agents"]:
-                if section not in dict(document):
-                    document[section] = tomlkit.table()
+        return dict(document)
 
-        return document
+    @staticmethod
+    def _get_document(file_path: Path) -> tomlkit.TOMLDocument:
+        if not file_path.exists():
+            return tomlkit.document()
 
-    def save(self, settings_data: PartialSettingsData, to_global: bool = False) -> None:
-        if to_global:
-            global_file_path = self._global_settings_file_path
-            file_path = self._global_settings_file_path
-        else:
-            if settings_data.username is not None and settings_data.email is not None:
-                raise ValueError("Username and Email can only be saved in global settings")
+        with file_path.open() as file:
+            return tomlkit.loads(file.read())
 
-            if not self._project_settings_file_path:
-                raise ValueError("Cannnot save to project settings file, because project is not initialized")
+    @staticmethod
+    def _update_document(document: tomlkit.TOMLDocument, settings_data: PartialSettingsData):
+        for key in settings_data.model_dump(exclude_none=True):
+            document[key] = getattr(settings_data, key)
 
-            global_file_path = self._global_settings_file_path
-            file_path = self._project_settings_file_path
-
-        global_document = self.__get_tolmdocument_to_save(global_file_path)
-        document = self.__get_tolmdocument_to_save(file_path)
-        doc_settings: tomlkit.table.Table = document["settings"]
-        doc_materials: tomlkit.table.Table = document["materials"]
-        doc_agents: tomlkit.table.Table = document["agents"]
-        global_doc_agents: tomlkit.table.Table = global_document["agents"]
-
-        if settings_data.code_autorun is not None:
-            doc_settings["code_autorun"] = settings_data.code_autorun
-
-        if settings_data.openai_api_key is not None:
-            doc_settings["openai_api_key"] = settings_data.openai_api_key
-
-        if settings_data.username is not None:
-            doc_settings["username"] = settings_data.username
-
-        if settings_data.email is not None:
-            doc_settings["email"] = settings_data.email
-
-        for material in settings_data.materials_to_reset:
-            if material in doc_materials:
-                del doc_materials[material]
-
-        for agent in settings_data.agents_to_reset:
-            if agent in doc_agents:
-                del doc_agents[agent]
-
-        for material in settings_data.materials:
-            doc_materials[material] = settings_data.materials[material].value
-
-        was_forced = False
-        for agent in settings_data.agents:
-            doc_agents[agent] = settings_data.agents[agent].value
-            if settings_data.agents[agent] == AssetStatus.FORCED:
-                was_forced = agent
-
-        if was_forced:
-            for agent in set([*global_doc_agents, *doc_agents]):
-                if agent != was_forced and (
-                    doc_agents.get(agent, global_doc_agents.get(agent, "")) == AssetStatus.FORCED.value
-                ):
-                    doc_agents[agent] = AssetStatus.ENABLED.value
-
-        self._suppress_notification_until = datetime.datetime.now() + datetime.timedelta(seconds=30)
-
+    @staticmethod
+    def _write_document(file_path: Path, document: tomlkit.TOMLDocument):
         file_path.parent.mkdir(parents=True, exist_ok=True)
         with file_path.open("w") as file:
             file.write(document.as_string())
 
+    def save(self, settings_data: PartialSettingsData, to_global: bool = False) -> None:
+        file_path = self._global_settings_file_path if to_global else self._project_settings_file_path
+        if not file_path:
+            raise ValueError("Cannot save settings, path not specified")
+
+        document = self._get_document(file_path)
+        self._update_document(document, settings_data)
+        self._write_document(file_path, document)
+        self._suppress_notification_until = datetime.datetime.now() + datetime.timedelta(seconds=30)
+        
+        # TODO: disscuss forced agent logic of savings
+        # TODO: disscuss logic of suppresing messages
+
 
 async def init():
+    # TODO: Remove global usage
     global _settings
-    _settings = Settings(get_project_directory() if is_project_initialized() else None)
+    _settings = Settings(get_project_directory() if project.is_project_initialized() else None)
     await _settings.reload()
 
 
@@ -314,5 +221,5 @@ def get_aiconsole_settings() -> Settings:
 async def reload_settings(initial: bool = False):
     global _settings
     _settings.stop()
-    _settings = Settings(get_project_directory() if is_project_initialized() else None)
+    _settings = Settings(get_project_directory() if project.is_project_initialized() else None)
     await _settings.reload(initial)

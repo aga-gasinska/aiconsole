@@ -22,6 +22,7 @@ from libgravatar import Gravatar
 class UserProfile(BaseModel):
     username: str
     avatar_url: str
+    avatar: str
 
 
 router = APIRouter()
