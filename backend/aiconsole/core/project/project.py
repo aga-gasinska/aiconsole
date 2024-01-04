@@ -26,8 +26,10 @@ from aiconsole.api.websockets.server_messages import (
     ProjectLoadingServerMessage,
     ProjectOpenedServerMessage,
 )
-from aiconsole.core.assets.asset import AssetType
+from aiconsole.core.assets.models import AssetType
 from aiconsole.core.code_running.run_code import reset_code_interpreters
+from aiconsole.core.settings.project_settings import Settings
+
 
 if TYPE_CHECKING:
     from aiconsole.core.assets import assets
@@ -82,20 +84,17 @@ def is_project_initialized() -> bool:
 
 
 async def close_project():
-    from aiconsole.core.settings.project_settings import reload_settings
-
     await _clear_project()
 
     await ProjectClosedServerMessage().send_to_all()
 
-    await reload_settings(initial=True)
+    await Settings().reload()  # type: ignore # TODO: do not show setting message "reloaded"
 
 
 async def reinitialize_project():
     from aiconsole.core.assets import assets
     from aiconsole.core.project.paths import get_project_directory, get_project_name
     from aiconsole.core.recent_projects.recent_projects import add_to_recent_projects
-    from aiconsole.core.settings.project_settings import reload_settings
 
     await ProjectLoadingServerMessage().send_to_all()
 
@@ -118,7 +117,7 @@ async def reinitialize_project():
 
     await _materials.reload(initial=True)
     await _agents.reload(initial=True)
-    await reload_settings(initial=True)
+    await Settings().reload()  # type: ignore # TODO: do not show setting message "reloaded"
 
 
 async def change_project_directory(path: Path):

@@ -22,7 +22,6 @@ from libgravatar import Gravatar
 class UserProfile(BaseModel):
     username: str
     avatar_url: str
-    avatar: str
 
 
 router = APIRouter()
@@ -39,7 +38,7 @@ def profile(email: str):
 
         entry = gravatar_data["entry"][0]
         user_profile = UserProfile(
-            username=entry.get("preferredUsername", ""), avatar_url=entry.get("thumbnailUrl", "")
+            username=entry.get("preferredUsername", ""), avatar_url=entry.get("thumbnailUrl", ""),
         )
         return user_profile
     else:

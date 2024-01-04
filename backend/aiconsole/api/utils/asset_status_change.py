@@ -1,6 +1,6 @@
 from aiconsole.api.utils.status_change_post_body import StatusChangePostBody
-from aiconsole.core.assets.asset import AssetType
-from aiconsole.core.settings.project_settings import get_aiconsole_settings
+from aiconsole.core.assets.assets import Assets
+from aiconsole.core.assets.models import AssetType
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 
@@ -17,9 +17,7 @@ async def asset_status_change(asset_type: AssetType, asset_id: str, body: Status
         JSONResponse: JSON response indicating the result.
     """
     try:
-        get_aiconsole_settings().set_asset_status(
-            asset_type, id=asset_id, status=body.status, to_global=body.to_global
-        )
+        Assets.set_status(asset_type, id=asset_id, status=body.status, to_global=body.to_global)
         return JSONResponse({"status": "ok"})
     except KeyError:
         raise HTTPException(status_code=404, detail="Agent not found")

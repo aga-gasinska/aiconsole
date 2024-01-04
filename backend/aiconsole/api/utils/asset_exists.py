@@ -1,4 +1,4 @@
-from aiconsole.core.assets.asset import AssetLocation, AssetType
+from aiconsole.core.assets.models import AssetLocation, AssetType
 from aiconsole.core.project import project
 from aiconsole.core.project.paths import get_project_assets_directory
 from fastapi import HTTPException, Request

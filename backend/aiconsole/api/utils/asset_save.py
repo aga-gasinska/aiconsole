@@ -1,4 +1,4 @@
-from aiconsole.core.assets.asset import Asset, AssetType
+from aiconsole.core.assets.models import Asset, AssetType
 from aiconsole.core.project import project
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse

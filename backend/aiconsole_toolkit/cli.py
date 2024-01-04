@@ -40,7 +40,7 @@ async def main():
 
             print(chat_info["name"])
 
-            chat = client.get(f"/api/chats/{chat_info["id"]}").json()
+            chat = client.get(f"/api/chats/{chat_info['id']}").json()
 
             await OpenChatClientMessage(chat_id=chat_info["id"]).send(websocket)
 

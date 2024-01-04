@@ -17,7 +17,8 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from aiconsole.core.assets.asset import EditableObject
+from aiconsole.core.assets.models import EditableObject
+from aiconsole.core.settings.project_settings import Settings
 from aiconsole.core.code_running.code_interpreters.language import LanguageStr
 from aiconsole.core.gpt.types import GPTRole
 
@@ -59,20 +60,16 @@ class AICMessageGroup(BaseModel):
 
     @model_validator(mode="after")
     def set_default_username(self):
-        from aiconsole.core.settings.project_settings import get_aiconsole_settings
-
         role = self.role
         if role == "user":
-            self.username = self.username or get_aiconsole_settings().get_username()
+            self.username = self.username or Settings().settings_data.user_profile.username
         return self
 
     @model_validator(mode="after")
     def set_default_email(self):
-        from aiconsole.core.settings.project_settings import get_aiconsole_settings
-
         role = self.role
         if role == "user":
-            self.email = self.email or get_aiconsole_settings().get_email()
+            self.email = self.email or Settings().settings_data.user_profile.email
         return self
 
 

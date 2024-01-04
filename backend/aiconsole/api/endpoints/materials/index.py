@@ -14,23 +14,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from aiconsole.core.assets.asset import AssetType
+from aiconsole.core.assets.models import AssetType
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from aiconsole.core.project import project
-from aiconsole.core.settings.project_settings import get_aiconsole_settings
 
 router = APIRouter()
 
 
 @router.get("/")
 async def materials_get():
-    settings = get_aiconsole_settings()
     return JSONResponse(
         [
             {
                 **material.model_dump(),
-                "status": settings.get_asset_status(AssetType.MATERIAL, material.id),
+                "status": project.get_project_agents().get_status(AssetType.MATERIAL, material.id),
             }
             for material in project.get_project_materials().all_assets()
         ]

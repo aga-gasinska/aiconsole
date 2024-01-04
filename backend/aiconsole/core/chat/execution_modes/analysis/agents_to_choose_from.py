@@ -1,5 +1,5 @@
 from aiconsole.core.assets.agents.agent import Agent
-from aiconsole.core.assets.asset import AssetStatus
+from aiconsole.core.assets.models import AssetStatus
 from aiconsole.core.project import project
 
 

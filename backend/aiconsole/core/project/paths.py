@@ -14,9 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import asyncio
 import os
 from pathlib import Path
-from aiconsole.core.assets.asset import AssetType
+from aiconsole.core.assets.models import AssetType
+
 from aiconsole.core.project.project import is_project_initialized
 from aiconsole.utils.resource_to_path import resource_to_path
 

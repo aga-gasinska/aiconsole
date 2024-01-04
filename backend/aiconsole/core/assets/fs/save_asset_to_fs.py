@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from aiconsole.core.assets.asset import Asset
+from aiconsole.core.assets.models import Asset
 import tomlkit
 from aiconsole.core.assets.agents.agent import Agent
 from aiconsole.core.assets.fs.load_asset_from_fs import load_asset_from_fs

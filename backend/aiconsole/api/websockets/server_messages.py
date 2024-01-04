@@ -21,7 +21,7 @@ from aiconsole.core.chat.types import Chat
 
 if typing.TYPE_CHECKING:
     from aiconsole.api.websockets.connection_manager import AICConnection
-from aiconsole.core.assets.asset import AssetType
+from aiconsole.core.assets.models import AssetType
 from pydantic import BaseModel
 
 

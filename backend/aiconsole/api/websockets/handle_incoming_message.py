@@ -30,7 +30,7 @@ from aiconsole.api.websockets.client_messages import (
 )
 from aiconsole.api.websockets.server_messages import ChatOpenedServerMessage, ErrorServerMessage
 from aiconsole.core.assets.agents.agent import Agent
-from aiconsole.core.assets.asset import AssetLocation
+from aiconsole.core.assets.models import AssetLocation
 from aiconsole.core.chat.execution_modes.execution_mode import AcceptCodeContext, ProcessChatContext
 from aiconsole.core.chat.execution_modes.import_and_validate_execution_mode import import_and_validate_execution_mode
 from aiconsole.core.chat.locking import DefaultChatMutator, acquire_lock, release_lock

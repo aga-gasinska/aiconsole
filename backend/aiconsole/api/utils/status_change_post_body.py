@@ -1,4 +1,4 @@
-from aiconsole.core.assets.asset import AssetStatus
+from aiconsole.core.assets.models import AssetStatus
 from pydantic import BaseModel
 
 

@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from aiconsole.core.assets.asset import AssetStatus
+from aiconsole.core.assets.models import AssetStatus
 from aiconsole.core.project import project
 
 

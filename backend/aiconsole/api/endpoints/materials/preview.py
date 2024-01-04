@@ -15,7 +15,7 @@
 # limitations under the License.
 
 from datetime import datetime
-from aiconsole.core.assets.asset import AssetLocation
+from aiconsole.core.assets.models import AssetLocation
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from aiconsole.core.assets.agents.agent import Agent

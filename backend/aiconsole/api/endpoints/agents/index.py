@@ -14,9 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from aiconsole.core.assets.asset import AssetType
+from aiconsole.core.assets.models import AssetType
 from aiconsole.core.project import project
-from aiconsole.core.settings.project_settings import get_aiconsole_settings
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
@@ -25,13 +24,12 @@ router = APIRouter()
 
 @router.get("/")
 async def agents_get():
-    settings = get_aiconsole_settings()
     return JSONResponse(
         [
             *(
                 {
                     **agent.model_dump(),
-                    "status": settings.get_asset_status(AssetType.AGENT, agent.id),
+                    "status": project.get_project_agents().get_status(AssetType.AGENT, agent.id),
                 }
                 for agent in project.get_project_agents().all_assets()
             )
