@@ -106,23 +106,6 @@ export const ChatOpenedServerMessageSchema = BaseServerMessageSchema.extend({
 
 export type ChatOpenedServerMessage = z.infer<typeof ChatOpenedServerMessageSchema>;
 
-export const LockAcquiredServerMessageSchema = BaseServerMessageSchema.extend({
-  type: z.literal('LockAcquiredServerMessage'),
-  request_id: z.string(),
-  chat_id: z.string(),
-});
-
-export type LockAcquiredServerMessage = z.infer<typeof LockAcquiredServerMessageSchema>;
-
-export const LockReleasedServerMessageSchema = BaseServerMessageSchema.extend({
-  type: z.literal('LockReleasedServerMessage'),
-  request_id: z.string(),
-  chat_id: z.string(),
-  aborted: z.boolean(),
-});
-
-export type LockReleasedServerMessage = z.infer<typeof LockReleasedServerMessageSchema>;
-
 export const ServerMessageSchema = z.union([
   NotificationServerMessageSchema,
   DebugJSONServerMessageSchema,
@@ -135,8 +118,6 @@ export const ServerMessageSchema = z.union([
   SettingsServerMessageSchema,
   NotifyAboutChatMutationServerMessageSchema,
   ChatOpenedServerMessageSchema,
-  LockAcquiredServerMessageSchema,
-  LockReleasedServerMessageSchema,
 ]);
 
 export type ServerMessage = z.infer<typeof ServerMessageSchema>;

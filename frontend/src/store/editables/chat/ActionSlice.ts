@@ -66,15 +66,13 @@ export const createActionSlice: StateCreator<ChatStore, [], [], ActionSlice> = (
     //TODO: Wait for confirmation and maybe switch to a dedicated message type
     const chat = get().chat;
 
-    if (!chat) {
-      throw new Error('Chat is not initialized');
+    if (chat && chat.lock_id) {
+      useWebSocketStore.getState().sendMessage({
+        type: 'ReleaseLockClientMessage',
+        request_id: uuidv4(),
+        chat_id: chat.id,
+      });
     }
-
-    useWebSocketStore.getState().sendMessage({
-      type: 'ReleaseLockClientMessage',
-      request_id: uuidv4(),
-      chat_id: chat.id,
-    });
   },
   analysis: {
     agent_id: undefined,

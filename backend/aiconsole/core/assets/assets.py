@@ -16,22 +16,22 @@
 
 import datetime
 import logging
-from aiconsole.core.settings.models import PartialSettingsData
 
 import watchdog.events
 import watchdog.observers
 
-from aiconsole.core.project.paths import get_project_assets_directory
-from aiconsole.core.settings.project_settings import Settings
-from aiconsole.utils.BatchingWatchDogHandler import BatchingWatchDogHandler
 from aiconsole.api.websockets.server_messages import AssetsUpdatedServerMessage
-from aiconsole.core.project import project
-from aiconsole.core.assets.models import Asset, AssetLocation, AssetStatus, AssetType
+from aiconsole.core.assets.fs.delete_asset_from_fs import delete_asset_from_fs
 from aiconsole.core.assets.fs.move_asset_in_fs import move_asset_in_fs
 from aiconsole.core.assets.fs.project_asset_exists_fs import project_asset_exists_fs
-from aiconsole.core.assets.fs.delete_asset_from_fs import delete_asset_from_fs
 from aiconsole.core.assets.fs.save_asset_to_fs import save_asset_to_fs
 from aiconsole.core.assets.load_all_assets import load_all_assets
+from aiconsole.core.assets.models import Asset, AssetLocation, AssetStatus, AssetType
+from aiconsole.core.project import project
+from aiconsole.core.project.paths import get_project_assets_directory
+from aiconsole.core.settings.models import PartialSettingsData
+from aiconsole.core.settings.project_settings import Settings
+from aiconsole.utils.BatchingWatchDogHandler import BatchingWatchDogHandler
 
 _log = logging.getLogger(__name__)
 

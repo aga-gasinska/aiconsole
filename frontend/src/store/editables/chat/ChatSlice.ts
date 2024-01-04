@@ -16,17 +16,17 @@
 
 import { StateCreator } from 'zustand';
 
-import { EditablesAPI } from '@/api/api/EditablesAPI';
 import { Chat } from '@/types/editables/chatTypes';
-import { deepCopyChat } from '@/utils/editables/chatUtils';
-import { useEditablesStore } from '../useEditablesStore';
 import { ChatStore } from './useChatStore';
+import { useEditablesStore } from '../useEditablesStore';
+import { EditablesAPI } from '@/api/api/EditablesAPI';
 
 export type ChatSlice = {
   chat?: Chat;
-  saveCurrentChatHistory: () => Promise<void>;
   lastUsedChat?: Chat;
   setLastUsedChat: (chat: Chat) => void;
+  setChat: (chat: Chat) => void;
+  renameChat: (newChat: Chat) => Promise<void>;
 };
 
 export const createChatSlice: StateCreator<ChatStore, [], [], ChatSlice> = (set, get) => ({
@@ -37,36 +37,14 @@ export const createChatSlice: StateCreator<ChatStore, [], [], ChatSlice> = (set,
   setLastUsedChat: (chat: Chat) => {
     set({ lastUsedChat: chat });
   },
-  saveCurrentChatHistory: async () => {
-    const chat = deepCopyChat(get().chat);
+  setChat: (chat: Chat) => {
+    set({ chat });
+  },
+  renameChat: async (newChat: Chat) => {
+    await EditablesAPI.updateEditableObject('chat', newChat, newChat.id);
+    get().setChat(newChat);
 
-    if (chat) {
-      // update title
-      if (!chat.title_edited && chat.message_groups.length > 0 && chat.message_groups[0].messages.length > 0) {
-        chat.name = chat.message_groups[0].messages[0].content;
-      }
-
-      //remove empty groups
-      chat.message_groups = chat.message_groups.filter((group) => {
-        return group.messages.length > 0;
-      });
-
-      set({
-        chat: chat,
-      });
-
-      useEditablesStore.setState({
-        chats: [
-          {
-            id: chat.id,
-            name: chat.name,
-            last_modified: new Date().toISOString(),
-          },
-          ...useEditablesStore.getState().chats.filter((c) => c.id !== chat.id),
-        ],
-      });
-
-      await EditablesAPI.updateEditableObject('chat', chat);
-    }
+    //If it's chat we need to reload chat history because there is no autoreload on change for chats
+    useEditablesStore.getState().initChatHistory();
   },
 });

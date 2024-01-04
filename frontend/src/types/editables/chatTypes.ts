@@ -44,7 +44,7 @@ export const ChatHeadlineSchema = EditableObjectSchema.extend({
 export type ChatHeadline = z.infer<typeof ChatHeadlineSchema>;
 
 export const ChatSchema = EditableObjectSchema.extend({
-  lock_id: z.string(),
+  lock_id: z.string().optional(),
   title_edited: z.boolean(),
   last_modified: z.string(),
   message_groups: z.array(AICMessageGroupSchema),

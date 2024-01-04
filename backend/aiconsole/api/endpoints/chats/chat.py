@@ -14,13 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from aiconsole.core.chat.types import Chat
-from aiconsole.core.chat.load_chat_history import load_chat_history
-from aiconsole.core.chat.save_chat_history import save_chat_history
-from aiconsole.core.project.paths import get_history_directory
 from fastapi import APIRouter, Response, status
 from fastapi.responses import JSONResponse
 from send2trash import send2trash
+
+from aiconsole.core.chat.load_chat_history import load_chat_history
+from aiconsole.core.chat.save_chat_history import save_chat_history
+from aiconsole.core.chat.types import Chat
+from aiconsole.core.project.paths import get_history_directory
 
 router = APIRouter()
 
@@ -39,29 +40,6 @@ async def delete_history(chat_id: str):
             status_code=status.HTTP_404_NOT_FOUND,
             content="Chat history not found",
         )
-
-
-@router.get("/{chat_id}")
-async def get_history(chat_id: str):
-    chat = await load_chat_history(chat_id)
-
-    return JSONResponse(chat.model_dump(mode="json"))
-
-
-@router.patch("/{chat_id}")
-async def save_history(chat_id, chat: Chat):
-    if chat_id != chat.id:
-        return Response(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content="Chat ID mismatch",
-        )
-
-    save_chat_history(chat)
-
-    return Response(
-        status_code=status.HTTP_201_CREATED,
-        content="Chat history saved successfully",
-    )
 
 
 @router.get("/{chat_id}/path")

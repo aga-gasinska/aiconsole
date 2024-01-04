@@ -10,7 +10,7 @@ import { deepCopyChat } from '@/utils/editables/chatUtils';
 export async function handleServerMessage(message: ServerMessage) {
   const showToast = useToastsStore.getState().showToast;
 
-  console.log('WebSocket message: ', message);
+  console.log('Received ServerMessage: ', message);
 
   switch (message.type) {
     case 'ErrorServerMessage':
@@ -86,12 +86,6 @@ export async function handleServerMessage(message: ServerMessage) {
           message: `Loaded new settings.`,
         });
       }
-      break;
-    case 'LockAcquiredServerMessage':
-      console.info('LockAcquiredServerMessage is not supported');
-      break;
-    case 'LockReleasedServerMessage':
-      console.info('LockReleasedServerMessage is not supported');
       break;
     case 'NotifyAboutChatMutationServerMessage': {
       const chat = deepCopyChat(useChatStore.getState().chat);

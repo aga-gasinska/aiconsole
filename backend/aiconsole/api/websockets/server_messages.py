@@ -21,8 +21,10 @@ from aiconsole.core.chat.types import Chat
 
 if typing.TYPE_CHECKING:
     from aiconsole.api.websockets.connection_manager import AICConnection
-from aiconsole.core.assets.models import AssetType
+
 from pydantic import BaseModel
+
+from aiconsole.core.assets.models import AssetType
 
 
 class BaseServerMessage(BaseModel):
@@ -94,17 +96,13 @@ class NotifyAboutChatMutationServerMessage(BaseServerMessage):
     chat_id: str
     mutation: ChatMutation
 
+    def model_dump(self, **kwargs):
+        # include type of mutation in the dump of "mutation"
+        return {
+            **super().model_dump(**kwargs),
+            "mutation": {**self.mutation.model_dump(**kwargs), "type": self.mutation.__class__.__name__},
+        }
+
 
 class ChatOpenedServerMessage(BaseServerMessage):
     chat: Chat
-
-
-class LockAcquiredServerMessage(BaseServerMessage):
-    request_id: str
-    chat_id: str
-
-
-class LockReleasedServerMessage(BaseServerMessage):
-    request_id: str
-    chat_id: str
-    aborted: bool

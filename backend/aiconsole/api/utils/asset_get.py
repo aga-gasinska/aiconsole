@@ -1,11 +1,12 @@
 from typing import Callable
 
+from fastapi import HTTPException
+from fastapi.responses import JSONResponse
+
 from aiconsole.core.assets.models import Asset, AssetLocation, AssetType
 from aiconsole.core.project import project
 from aiconsole.core.settings.project_settings import Settings
 from aiconsole.utils.capitalize_first import capitalize_first
-from fastapi import HTTPException
-from fastapi.responses import JSONResponse
 
 
 async def asset_get(request, asset_type: AssetType, asset_id: str, new_asset: Callable[[], Asset]):

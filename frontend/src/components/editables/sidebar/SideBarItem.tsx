@@ -25,10 +25,10 @@ import { Chat } from '@/types/editables/chatTypes';
 import { MoreVertical } from 'lucide-react';
 import { useAssets } from '@/utils/editables/useAssets';
 import { convertNameToId } from '@/utils/editables/convertNameToId';
-import { useChat } from '@/utils/editables/useChat';
 import { Icon } from '@/components/common/icons/Icon';
 import { useToastsStore } from '@/store/common/useToastsStore';
 import { ContextMenu, ContextMenuRef } from '@/components/common/ContextMenu';
+import { useChatStore } from '@/store/editables/chat/useChatStore';
 
 const SideBarItem = ({
   editableObjectType,
@@ -39,6 +39,8 @@ const SideBarItem = ({
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
+
+  const renameChat = useChatStore((state) => state.renameChat);
 
   const [isEditing, setIsEditing] = useState(false);
   const [isShowingContext, setIsShowingContext] = useState(false);
@@ -73,8 +75,6 @@ const SideBarItem = ({
   const hideInput = () => {
     setIsEditing(false);
   };
-
-  const { renameChat } = useChat();
 
   const handleRename = async () => {
     const previousObjectId = editableObject.id;

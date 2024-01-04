@@ -14,16 +14,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from aiconsole.core.assets.models import AssetType
-from aiconsole.core.project import project
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
+
+from aiconsole.core.assets.models import AssetType
+from aiconsole.core.project import project
 
 router = APIRouter()
 
 
 @router.get("/")
-async def agents_get():
+async def fetch_agents():
     return JSONResponse(
         [
             *(

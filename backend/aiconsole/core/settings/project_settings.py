@@ -20,7 +20,6 @@ from aiconsole.core.settings import models
 from aiconsole.core.settings.base.singleton import Singleton
 from aiconsole.core.settings.base.storage import SettingsStorage
 
-
 _log = logging.getLogger(__name__)
 
 

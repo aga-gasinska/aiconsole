@@ -15,7 +15,6 @@
 # limitations under the License.
 
 from aiconsole.core.assets.models import Asset, AssetStatus, AssetType
-
 from aiconsole.core.gpt.consts import GPTMode
 
 

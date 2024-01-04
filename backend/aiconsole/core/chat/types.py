@@ -17,12 +17,12 @@
 from dataclasses import dataclass
 from datetime import datetime
 
+from pydantic import BaseModel, ConfigDict, model_validator
+
 from aiconsole.core.assets.models import EditableObject
-from aiconsole.core.settings.project_settings import Settings
 from aiconsole.core.code_running.code_interpreters.language import LanguageStr
 from aiconsole.core.gpt.types import GPTRole
-
-from pydantic import BaseModel, ConfigDict, model_validator
+from aiconsole.core.settings.project_settings import Settings
 
 
 class AICToolCall(BaseModel):
@@ -94,7 +94,7 @@ class AICToolCallLocation:
 
 
 class Chat(ChatHeadline):
-    lock_id: str | None = None  # TODO: This has not been implemented, it's just added here.
+    lock_id: str | None = None
     title_edited: bool = False
     message_groups: list[AICMessageGroup]
     is_analysis_in_progress: bool = False

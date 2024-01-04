@@ -3,13 +3,14 @@ import { z } from 'zod';
 
 export const LockAcquiredMutationSchema = z.object({
   type: z.literal('LockAcquiredMutation'),
+  lock_id: z.string(),
 });
 
 export type LockAcquiredMutation = z.infer<typeof LockAcquiredMutationSchema>;
 
 export const LockReleasedMutationSchema = z.object({
   type: z.literal('LockReleasedMutation'),
-  aborted: z.boolean(),
+  lock_id: z.string(),
 });
 
 export type LockReleasedMutation = z.infer<typeof LockReleasedMutationSchema>;
