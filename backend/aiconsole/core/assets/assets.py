@@ -13,22 +13,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import datetime
 import logging
+
+import watchdog.events
+import watchdog.observers
+
+from aiconsole.core.project.paths import get_project_assets_directory
+from aiconsole.core.settings.project_settings import get_aiconsole_settings
+from aiconsole.utils.BatchingWatchDogHandler import BatchingWatchDogHandler
+from aiconsole.api.websockets.server_messages import AssetsUpdatedServerMessage
 from aiconsole.core.assets.asset import Asset, AssetLocation, AssetStatus, AssetType
 from aiconsole.core.assets.fs.move_asset_in_fs import move_asset_in_fs
 from aiconsole.core.assets.fs.project_asset_exists_fs import project_asset_exists_fs
 from aiconsole.core.assets.fs.delete_asset_from_fs import delete_asset_from_fs
 from aiconsole.core.assets.fs.save_asset_to_fs import save_asset_to_fs
 from aiconsole.core.assets.load_all_assets import load_all_assets
-
-import watchdog.events
-import watchdog.observers
-from aiconsole.core.project.paths import get_project_assets_directory
-from aiconsole.core.settings.project_settings import get_aiconsole_settings
-from aiconsole.utils.BatchingWatchDogHandler import BatchingWatchDogHandler
-from aiconsole.api.websockets.server_messages import AssetsUpdatedServerMessage
+from aiconsole.api.websockets.connection_manager import connection_manager
 
 _log = logging.getLogger(__name__)
 
@@ -140,14 +141,16 @@ class Assets:
 
         self._assets = await load_all_assets(self.asset_type)
 
-        await AssetsUpdatedServerMessage(
-            initial=(
-                initial
-                or not (
-                    not self._suppress_notification_until
-                    or self._suppress_notification_until < datetime.datetime.now()
-                )
-            ),
-            asset_type=self.asset_type,
-            count=len(self._assets),
-        ).send_to_all()
+        await connection_manager().broadcast(
+            AssetsUpdatedServerMessage(
+                initial=(
+                    initial
+                    or not (
+                        not self._suppress_notification_until
+                        or self._suppress_notification_until < datetime.datetime.now()
+                    )
+                ),
+                asset_type=self.asset_type,
+                count=len(self._assets),
+            )
+        )

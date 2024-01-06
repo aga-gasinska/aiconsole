@@ -20,6 +20,7 @@ from datetime import datetime
 import traceback
 from typing import cast
 from uuid import uuid4
+from aiconsole.api.websockets.connection_manager import connection_manager
 from aiconsole.api.websockets.server_messages import ErrorServerMessage
 from aiconsole.core.assets.materials.material import Material
 
@@ -148,7 +149,10 @@ async def _run_code(context: ProcessChatContext, tool_call_id):
                     )
                 )
         except Exception:
-            await ErrorServerMessage(error=traceback.format_exc().strip()).send_to_chat(context.chat_mutator.chat.id)
+            await connection_manager().send_to_chat(
+                ErrorServerMessage(error=traceback.format_exc().strip()), context.chat_mutator.chat.id
+            )
+
             await context.chat_mutator.mutate(
                 AppendToOutputToolCallMutation(
                     tool_call_id=tool_call_id,

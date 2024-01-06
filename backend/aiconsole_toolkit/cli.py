@@ -40,7 +40,7 @@ async def main():
 
             print(chat_info["name"])
 
-            chat = client.get(f"/api/chats/{chat_info["id"]}").json()
+            chat = client.get(f"/api/chats/{chat_info['id']}").json()
 
             await OpenChatClientMessage(chat_id=chat_info["id"]).send(websocket)
 
@@ -50,10 +50,8 @@ async def main():
             while True:
                 data = websocket.receive_json()
                 print(data)
-                if (data["type"] == "LockReleasedServerMessage" and data["request_id"] == "test"):
+                if data["type"] == "LockReleasedServerMessage" and data["request_id"] == "test":
                     break
-                
-
 
 
 if __name__ == "__main__":

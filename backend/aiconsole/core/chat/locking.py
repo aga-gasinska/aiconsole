@@ -2,7 +2,7 @@ import asyncio
 from collections import defaultdict
 from typing import Dict
 
-from aiconsole.api.websockets.connection_manager import AICConnection
+from aiconsole.api.websockets.connection_manager import AICConnection, connection_manager
 from aiconsole.api.websockets.server_messages import NotifyAboutChatMutationServerMessage
 from aiconsole.core.chat.apply_mutation import apply_mutation
 from aiconsole.core.chat.chat_mutations import ChatMutation, LockAcquiredMutation, LockReleasedMutation
@@ -45,9 +45,12 @@ async def acquire_lock(chat_id: str, request_id: str, skip_mutating_clients: boo
     lock_events[chat_id].clear()
 
     if not skip_mutating_clients:
-        await NotifyAboutChatMutationServerMessage(
-            request_id=request_id, chat_id=chat_id, mutation=LockAcquiredMutation(lock_id=request_id)
-        ).send_to_chat(chat_id)
+        await connection_manager().send_to_chat(
+            NotifyAboutChatMutationServerMessage(
+                request_id=request_id, chat_id=chat_id, mutation=LockAcquiredMutation(lock_id=request_id)
+            ),
+            chat_id,
+        )
 
     return chats[chat_id]
 
@@ -59,9 +62,12 @@ async def release_lock(chat_id: str, request_id: str) -> None:
         del chats[chat_id]
         lock_events[chat_id].set()
 
-        await NotifyAboutChatMutationServerMessage(
-            request_id=request_id, chat_id=chat_id, mutation=LockReleasedMutation(lock_id=request_id)
-        ).send_to_chat(chat_id)
+        await connection_manager().send_to_chat(
+            NotifyAboutChatMutationServerMessage(
+                request_id=request_id, chat_id=chat_id, mutation=LockReleasedMutation(lock_id=request_id)
+            ),
+            chat_id,
+        )
 
 
 class DefaultChatMutator(ChatMutator):
@@ -82,9 +88,13 @@ class DefaultChatMutator(ChatMutator):
 
         apply_mutation(self.chat, mutation)
 
-        # when a server receives a mutation it should send it out to every connection except the one it came from
-        await NotifyAboutChatMutationServerMessage(
-            request_id=self.request_id,
-            chat_id=self.chat_id,
-            mutation=mutation,
-        ).send_to_chat(self.chat_id, self.connection)
+        # TODO: when a server receives a mutation it should send it out to every connection except the one it came from
+        await connection_manager().send_to_chat(
+            NotifyAboutChatMutationServerMessage(
+                request_id=self.request_id,
+                chat_id=self.chat_id,
+                mutation=mutation,
+            ),
+            self.chat_id,
+            # connection=self.connection,
+        )
