@@ -53,7 +53,6 @@ export function ToolOutput({ tool_call, syntaxHighlighterCustomStyles }: OutputP
       <span className="text-[15px] w-20 flex-none">Output: </span>
       <EditableContentMessage
         initialContent={tool_call.output || ''}
-        isStreaming={tool_call.is_executing}
         handleAcceptedContent={handleAcceptedContent}
         handleRemoveClick={handleRemoveClick}
         className="flex-grow"

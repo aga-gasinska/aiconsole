@@ -13,33 +13,29 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import requests
-from fastapi import APIRouter
-from libgravatar import Gravatar
-from pydantic import BaseModel
+from typing import Optional
 
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import FileResponse
 
-class UserProfile(BaseModel):
-    username: str
-    avatar_url: str
-
+from aiconsole.core.users.models import UserProfile
+from aiconsole.core.users.user import UserProfileService, user_profile_service
 
 router = APIRouter()
 
 
 @router.get("/profile", response_model=UserProfile)
-def profile(email: str):
-    gravatar = Gravatar(email)
-    url_profile_json = gravatar.get_profile(data_format="json")
-    response = requests.get(url_profile_json)
+def profile(
+    email: Optional[str] = None, user_profile_service: UserProfileService = Depends(user_profile_service)
+) -> UserProfile:
+    return user_profile_service.get_profile(email=email)
 
-    if response.status_code == 200:
-        gravatar_data = response.json()
 
-        entry = gravatar_data["entry"][0]
-        user_profile = UserProfile(
-            username=entry.get("preferredUsername", ""), avatar_url=entry.get("thumbnailUrl", "")
-        )
-        return user_profile
-    else:
-        return UserProfile(username=f"{email}", avatar_url="https://gravatar.com/avatar/?d=mm")
+@router.get("/profile_image")
+def profile_image(
+    img_filename: str, user_profile_service: UserProfileService = Depends(user_profile_service)
+) -> FileResponse:
+    file_path = user_profile_service.get_profile_image_path(img_filename)
+    if not file_path.is_file():
+        raise HTTPException(status_code=404, detail="Image not found")
+    return FileResponse(str(file_path))
