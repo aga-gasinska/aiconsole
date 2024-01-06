@@ -1,19 +1,28 @@
 import asyncio
 from collections import defaultdict
-from typing import Dict
 
-from aiconsole.api.websockets.connection_manager import AICConnection, connection_manager
-from aiconsole.api.websockets.server_messages import NotifyAboutChatMutationServerMessage
+from fastapi import HTTPException
+
+from aiconsole.api.websockets.connection_manager import (
+    AICConnection,
+    connection_manager,
+)
+from aiconsole.api.websockets.server_messages import (
+    NotifyAboutChatMutationServerMessage,
+)
 from aiconsole.core.chat.apply_mutation import apply_mutation
-from aiconsole.core.chat.chat_mutations import ChatMutation, LockAcquiredMutation, LockReleasedMutation
+from aiconsole.core.chat.chat_mutations import (
+    ChatMutation,
+    LockAcquiredMutation,
+    LockReleasedMutation,
+)
 from aiconsole.core.chat.chat_mutator import ChatMutator
 from aiconsole.core.chat.load_chat_history import load_chat_history
 from aiconsole.core.chat.save_chat_history import save_chat_history
 from aiconsole.core.chat.types import Chat
-from fastapi import HTTPException
 
-chats: Dict[str, Chat] = {}
-lock_events: Dict[str, asyncio.Event] = defaultdict(asyncio.Event)
+chats: dict[str, Chat] = {}
+lock_events: dict[str, asyncio.Event] = defaultdict(asyncio.Event)
 
 lock_timeout = 30  # Time in seconds to wait for the lock
 

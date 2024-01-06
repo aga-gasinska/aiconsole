@@ -35,36 +35,34 @@ export function MessageControls({
   onRemoveClick,
 }: MessageControlsProps) {
   return (
-    <div>
+    <div className="min-w-[48px]">
       {isEditing ? (
-        <>
+        <div className="flex justify-between">
           <button>
-            <Icon icon={Check} onClick={onSaveClick} className="text-green" />{' '}
+            <Icon icon={Check} width={20} height={20} onClick={onSaveClick} className="text-green" />{' '}
           </button>
           <button>
-            <Icon icon={X} onClick={onCancelClick} className="text-red" />{' '}
+            <Icon icon={X} width={20} height={20} onClick={onCancelClick} className="text-red" />{' '}
           </button>
-        </>
+        </div>
       ) : (
-        <div className="min-w-[48px]">
-          <div
-            className={cn('flex flex-none gap-4 justify-end', {
-              'hidden group-hover:flex': hideControls,
-            })}
-          >
-            {onSaveClick && onEditClick && onCancelClick ? (
-              <button onClick={onEditClick}>
-                <Icon icon={Pencil} className="pointer-events-none" />{' '}
-              </button>
-            ) : (
-              <div className="h-4 w-4"></div>
-            )}
-            {onRemoveClick && (
-              <button onClick={onRemoveClick}>
-                <Icon icon={Trash} />{' '}
-              </button>
-            )}
-          </div>
+        <div
+          className={cn('flex flex-none gap-4 justify-end', {
+            'hidden group-hover:flex': hideControls,
+          })}
+        >
+          {onSaveClick && onEditClick && onCancelClick ? (
+            <button onClick={onEditClick}>
+              <Icon icon={Pencil} className="pointer-events-none" />{' '}
+            </button>
+          ) : (
+            <div className="h-4 w-4"></div>
+          )}
+          {onRemoveClick && (
+            <button onClick={onRemoveClick}>
+              <Icon icon={Trash} />{' '}
+            </button>
+          )}
         </div>
       )}
     </div>

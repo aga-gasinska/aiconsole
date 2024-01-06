@@ -16,12 +16,16 @@
 
 from typing import cast
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 
+from aiconsole.api.endpoints.registry import materials
+from aiconsole.api.endpoints.services import (
+    AssetWithGivenNameAlreadyExistError,
+    Materials,
+)
 from aiconsole.api.utils.asset_exists import asset_exists, asset_path
 from aiconsole.api.utils.asset_get import asset_get
-from aiconsole.api.utils.asset_save import asset_patch, asset_post
 from aiconsole.api.utils.asset_status_change import asset_status_change
 from aiconsole.api.utils.status_change_post_body import StatusChangePostBody
 from aiconsole.core.assets.asset import AssetLocation, AssetStatus, AssetType
@@ -135,13 +139,21 @@ async def get_material(request: Request, material_id: str):
 
 
 @router.patch("/{asset_id}")
-async def partially_update_material(asset_id: str, material: Material):
-    return await asset_patch(AssetType.MATERIAL, material, asset_id)
+async def partially_update_material(
+    asset_id: str, material: Material, materials_service: Materials = Depends(materials)
+):
+    try:
+        await materials_service.partially_update_material(material_id=asset_id, material=material)
+    except AssetWithGivenNameAlreadyExistError:
+        raise HTTPException(status_code=400, detail="Material with given name already exists")
 
 
 @router.post("/{asset_id}")
-async def create_material(asset_id: str, material: Material):
-    return await asset_post(AssetType.MATERIAL, material, asset_id)
+async def create_material(asset_id: str, material: Material, materials_service: Materials = Depends(materials)):
+    try:
+        await materials_service.create_material(material_id=asset_id, material=material)
+    except AssetWithGivenNameAlreadyExistError:
+        raise HTTPException(status_code=400, detail="Material with given name already exists")
 
 
 @router.post("/{material_id}/status-change")

@@ -17,15 +17,18 @@
 import asyncio
 import logging
 from typing import AsyncGenerator
-from aiconsole.api.websockets.connection_manager import connection_manager
+
 import litellm
+from litellm.caching import Cache
+from openai import AuthenticationError
+
+from aiconsole.api.websockets.connection_manager import connection_manager
+from aiconsole.api.websockets.server_messages import DebugJSONServerMessage
 from aiconsole.core.gpt.partial import GPTPartialResponse
 from aiconsole.core.gpt.request import GPTRequest
-from aiconsole.api.websockets.server_messages import DebugJSONServerMessage
+
 from .exceptions import NoOpenAPIKeyException
 from .types import CLEAR_STR, CLEAR_STR_TYPE, GPTChoice, GPTResponse, GPTResponseMessage
-from openai import AuthenticationError
-from litellm.caching import Cache
 
 _log = logging.getLogger(__name__)
 

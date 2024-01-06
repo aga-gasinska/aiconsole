@@ -1,8 +1,9 @@
 from typing import Literal
 
+from pydantic import BaseModel
+
 from aiconsole.core.code_running.code_interpreters.language import LanguageStr
 from aiconsole.core.gpt.types import GPTRole
-from pydantic import BaseModel
 
 
 class LockAcquiredMutation(BaseModel):
@@ -124,9 +125,9 @@ class CreateToolCallMutation(BaseModel):
     message_id: str
     tool_call_id: str
     code: str
-    language: LanguageStr | None
+    language: LanguageStr | None = None
     headline: str
-    output: str | None
+    output: str | None = None
 
 
 class DeleteToolCallMutation(BaseModel):
@@ -167,7 +168,7 @@ class SetLanguageToolCallMutation(BaseModel):
 class SetOutputToolCallMutation(BaseModel):
     type: Literal["SetOutputToolCallMutation"] = "SetOutputToolCallMutation"
     tool_call_id: str
-    output: str | None
+    output: str | None = None
 
 
 class AppendToOutputToolCallMutation(BaseModel):

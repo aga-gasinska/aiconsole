@@ -13,11 +13,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from aiconsole.core.chat.chat_mutations import ChatMutation
-from aiconsole.core.chat.types import Chat
+from pydantic import BaseModel
 
 from aiconsole.core.assets.asset import AssetType
-from pydantic import BaseModel
+from aiconsole.core.chat.chat_mutations import ChatMutation
+from aiconsole.core.chat.types import Chat
 
 
 class BaseServerMessage(BaseModel):

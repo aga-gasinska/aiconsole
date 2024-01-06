@@ -43,7 +43,6 @@ declare const MAIN_WINDOW_VITE_NAME: string;
 const isMac = process.platform === 'darwin';
 
 let loaderWindow: BrowserWindow;
-let mainWindow: BrowserWindow;
 
 type AIConsoleWindow = {
   browserWindow: BrowserWindow;
@@ -56,6 +55,7 @@ const windowManager: {
   addWindow: (browserWindow: BrowserWindow) => void;
   removeWindow: (targetWindow: BrowserWindow) => void;
   findBackendByWindow: (targetWindow: BrowserWindow) => ChildProcess;
+  getLastWindow: () => BrowserWindow;
 } = {
   windows: [],
   addWindow: (browserWindow) => {
@@ -71,6 +71,9 @@ const windowManager: {
   findBackendByWindow: (targetWindow) => {
     const window = windowManager.windows.find(({ browserWindow }) => browserWindow === targetWindow);
     return window ? window.backendProcess : null;
+  },
+  getLastWindow: () => {
+    return windowManager.windows[windowManager.windows.length - 1].browserWindow;
   },
 };
 
@@ -102,7 +105,7 @@ async function waitForServerToStart(window: AIConsoleWindow) {
         clearInterval(interval);
         setTimeout(() => {
           loaderWindow.hide();
-          mainWindow.show();
+          windowManager.getLastWindow().show();
         }, 500);
         window.browserWindow.webContents.send('set-backend-port', window.port);
       })
@@ -147,7 +150,7 @@ async function findEmptyPort(startingFrom = 1024, endingAt = 65535) {
 async function createWindow() {
   const stateTracker = await windowStateTracker(!windowManager.windows.length ? 'main' : `${Date.now().toString()}`);
 
-  mainWindow = new BrowserWindow({
+  const mainWindow = new BrowserWindow({
     width: stateTracker.width,
     height: stateTracker.height,
     x: stateTracker.x,
@@ -183,6 +186,10 @@ async function createWindow() {
       backendProcess.kill();
     }
     windowManager.removeWindow(mainWindow);
+
+    if (windowManager.windows.length === 0) {
+      app.quit();
+    }
   });
 
   windowManager.addWindow(mainWindow);

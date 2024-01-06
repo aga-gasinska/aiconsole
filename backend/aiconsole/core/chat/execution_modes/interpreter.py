@@ -16,17 +16,18 @@
 
 import json
 import logging
-from datetime import datetime
 import traceback
+from datetime import datetime
 from typing import cast
 from uuid import uuid4
+
+from pydantic import Field
+
 from aiconsole.api.websockets.connection_manager import connection_manager
 from aiconsole.api.websockets.server_messages import ErrorServerMessage
-from aiconsole.core.assets.materials.material import Material
-
 from aiconsole.core.chat.chat_mutations import (
-    AppendToContentMessageMutation,
     AppendToCodeToolCallMutation,
+    AppendToContentMessageMutation,
     AppendToHeadlineToolCallMutation,
     AppendToOutputToolCallMutation,
     CreateMessageMutation,
@@ -37,20 +38,31 @@ from aiconsole.core.chat.chat_mutations import (
     SetOutputToolCallMutation,
 )
 from aiconsole.core.chat.convert_messages import convert_messages
-from aiconsole.core.chat.execution_modes.execution_mode import AcceptCodeContext, ExecutionMode, ProcessChatContext
-from aiconsole.core.chat.execution_modes.get_agent_system_message import get_agent_system_message
+from aiconsole.core.chat.execution_modes.execution_mode import (
+    AcceptCodeContext,
+    ExecutionMode,
+    ProcessChatContext,
+)
+from aiconsole.core.chat.execution_modes.get_agent_system_message import (
+    get_agent_system_message,
+)
 from aiconsole.core.chat.types import AICMessageGroup
 from aiconsole.core.code_running.code_interpreters.language import LanguageStr
 from aiconsole.core.code_running.code_interpreters.language_map import language_map
 from aiconsole.core.code_running.run_code import get_code_interpreter
-from aiconsole.core.gpt.create_full_prompt_with_materials import create_full_prompt_with_materials
+from aiconsole.core.gpt.create_full_prompt_with_materials import (
+    create_full_prompt_with_materials,
+)
 from aiconsole.core.gpt.function_calls import OpenAISchema
 from aiconsole.core.gpt.gpt_executor import GPTExecutor
-from aiconsole.core.gpt.request import GPTRequest, ToolDefinition, ToolFunctionDefinition
+from aiconsole.core.gpt.request import (
+    GPTRequest,
+    ToolDefinition,
+    ToolFunctionDefinition,
+)
 from aiconsole.core.gpt.types import CLEAR_STR
 from aiconsole.core.project import project
 from aiconsole.core.settings.project_settings import get_aiconsole_settings
-from pydantic import Field
 
 _log = logging.getLogger(__name__)
 

@@ -16,10 +16,12 @@
 """
 Connection manager for websockets. Keeps track of all active connections
 """
+import logging
 from dataclasses import dataclass
 from functools import lru_cache
-import logging
+
 from fastapi import WebSocket
+
 from aiconsole.api.websockets.server_messages import BaseServerMessage
 
 _log = logging.getLogger(__name__)

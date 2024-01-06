@@ -15,7 +15,6 @@
 // limitations under the License.
 
 import { useRef, MouseEvent, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 import { useEditablesStore } from '@/store/editables/useEditablesStore';
 import { useProjectStore } from '@/store/projects/useProjectStore';
@@ -38,13 +37,16 @@ import { useSidebarStore } from '@/store/common/useSidebarStore';
 
 function EmptyChatAgentAvatar({ agent }: { agent: Agent }) {
   const menuItems = useEditableObjectContextMenu({ editableObjectType: 'agent', editable: agent });
-  const navigate = useNavigate();
+  const contextMenuRef = useRef<ContextMenuRef>(null);
+  const handleClick = (event: MouseEvent) => {
+    contextMenuRef.current?.handleTriggerClick(event);
+  };
 
   return (
-    <ContextMenu options={menuItems}>
+    <ContextMenu options={menuItems} ref={contextMenuRef}>
       <div
         key={agent.id}
-        onClick={() => navigate(`/agents/${agent.id}`)}
+        onClick={handleClick}
         className={cn(
           'flex flex-col justify-center items-center text-gray-400  hover:text-gray-300 cursor-pointer min-w-[110px]',
           {
@@ -61,12 +63,15 @@ function EmptyChatAgentAvatar({ agent }: { agent: Agent }) {
 
 function EmptyChatAssetLink({ assetType, asset }: { assetType: AssetType; asset: Asset }) {
   const menuItems = useEditableObjectContextMenu({ editableObjectType: assetType, editable: asset });
-  const navigate = useNavigate();
   const Icon = getEditableObjectIcon(asset);
+  const contextMenuRef = useRef<ContextMenuRef>(null);
+  const handleClick = (event: MouseEvent) => {
+    contextMenuRef.current?.handleTriggerClick(event);
+  };
 
   return (
-    <ContextMenu options={menuItems}>
-      <div className="inline-block cursor-pointer" onClick={() => navigate(`/materials/${asset.id}`)}>
+    <ContextMenu options={menuItems} ref={contextMenuRef}>
+      <div className="inline-block cursor-pointer" onClick={handleClick}>
         <div className="group py-2 flex items-center gap-[12px] text-[14px] text-gray-300 hover:text-white">
           <Icon className="w-6 h-6 text-gray-500 group-hover:text-material" />
           <p className="max-w-[160px] truncate">{asset.name}</p>

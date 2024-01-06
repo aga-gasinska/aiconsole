@@ -18,10 +18,10 @@ import { useCallback, useState } from 'react';
 import { MessageControls } from './MessageControls';
 import { CodeInput } from '../../assets/CodeInput';
 import { cn } from '@/utils/common/cn';
+import { useChatStore } from '@/store/editables/chat/useChatStore';
 
 interface EditableContentMessageProps {
   initialContent: string;
-  isStreaming: boolean;
   language?: string;
   children?: React.ReactNode;
   handleRemoveClick?: () => void;
@@ -32,7 +32,6 @@ interface EditableContentMessageProps {
 
 export function EditableContentMessage({
   initialContent,
-  isStreaming,
   children,
   language,
   handleAcceptedContent,
@@ -40,11 +39,13 @@ export function EditableContentMessage({
   hideControls,
   className,
 }: EditableContentMessageProps) {
+  const isBeingProcessed = useChatStore((state) => !!state.chat?.lock_id);
+
   const [isEditing, setIsEditing] = useState(false);
   const [content, setContent] = useState(initialContent);
 
   const handleEditClick = () => {
-    if (isStreaming) {
+    if (isBeingProcessed) {
       return;
     }
     setContent(initialContent);
@@ -87,7 +88,7 @@ export function EditableContentMessage({
           'min-w-[100px] ml-[92px]': hideControls,
         })}
       >
-        {!isStreaming && (
+        {!isBeingProcessed && (
           <MessageControls
             isEditing={isEditing}
             hideControls={hideControls}

@@ -1,4 +1,4 @@
-name: Run backend tests
+name: Run backend checks
 on:
   pull_request:
 
@@ -17,8 +17,14 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install poetry
+        pip install poetry black isort
         cd backend && poetry install
     - name: Run tests
       run: |
         cd backend && poetry run pytest .
+    - name: Run black check
+      run: |
+        cd backend && black --check .
+    - name: Run isort check
+      run: |
+        cd backend && isort --check-only --atomic .
