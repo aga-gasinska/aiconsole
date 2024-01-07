@@ -4,7 +4,7 @@ from pathlib import Path
 
 from aiconsole.core.clients.gravatar import GravatarUserProfile, gravatar_client
 from aiconsole.core.settings.project_settings import settings
-from aiconsole.core.users.models import UserProfile, DEFAULT_USERNAME
+from aiconsole.core.users.models import DEFAULT_USERNAME, UserProfile
 from aiconsole.utils.resource_to_path import resource_to_path
 
 AVATARS_PATH = "aiconsole.preinstalled.avatars"

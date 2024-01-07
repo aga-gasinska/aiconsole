@@ -1,5 +1,6 @@
 from typing import Optional
-from pydantic import BaseModel, EmailStr, Field
+
+from pydantic import BaseModel
 
 from aiconsole.core.assets.models import AssetStatus
 from aiconsole.core.users.models import UserProfile

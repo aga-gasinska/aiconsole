@@ -46,7 +46,7 @@ def generate_image(prompt: str, size: Literal["1024x1024", "1792x1024", "1024x17
       revised_prompt: str
     """
     asyncio.run(settings().reload())
- 
+
     openai_key = settings().settings_data.openai_api_key
 
     client = openai.OpenAI(api_key=openai_key)

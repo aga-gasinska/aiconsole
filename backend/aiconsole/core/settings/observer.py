@@ -33,7 +33,7 @@ class FileObserver:
             if file_path in self.observing:
                 _log.warning(f"[{self.__class__.__name__}] Already observing: {file_path}")
                 continue
-            
+
             # Set up observer
             try:
                 self._observer.schedule(

@@ -31,7 +31,7 @@ async def test_should_be_able_to_add_new_project(background_tasks: BackgroundTas
 
 
 async def _initialize_app():
-    settings_file_storage().configure()
+    settings_file_storage().configure(observer=None)
     settings().configure(storage=settings_file_storage())
 
 

@@ -27,8 +27,10 @@ from aiconsole.core.assets.agents.agent import Agent, AgentWithStatus
 from aiconsole.core.assets.models import AssetLocation, AssetStatus, AssetType
 from aiconsole.core.gpt.consts import GPTMode
 from aiconsole.core.project import project
-from aiconsole.core.assets.models import AssetType
-from aiconsole.core.project.paths import get_core_assets_directory, get_project_assets_directory
+from aiconsole.core.project.paths import (
+    get_core_assets_directory,
+    get_project_assets_directory,
+)
 from aiconsole.core.project.project import is_project_initialized
 
 router = APIRouter()
