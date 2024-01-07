@@ -168,7 +168,7 @@ export function CodeInput({
         }}
         className={cn(
           className,
-          'border-gray-500 w-[calc(100%-8px)] font-mono text-sm overflow-y-auto bg-gray-800 border rounded-[8px] transition duration-100',
+          'border-gray-500 w-full font-mono text-sm overflow-y-auto bg-gray-800 border rounded-[8px] transition duration-100',
           {
             'bg-gray-600 border-gray-400': focus,
             'hover:bg-gray-600 hover:placeholder:text-gray-300': !disabled && !readOnly,
