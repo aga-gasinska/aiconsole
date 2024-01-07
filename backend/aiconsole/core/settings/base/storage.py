@@ -41,7 +41,7 @@ class SettingsStorage(ABC):
         return settings_data
 
     @abstractmethod
-    def save(self, settings_data: models.PartialSettingsData, to_global: bool = False):
+    def save(self, settings_data: models.PartialSettingsData):
         ...
 
     def merge_settings(self) -> dict:

@@ -1,7 +1,7 @@
 import logging
 from functools import lru_cache
 from pathlib import Path
-from typing import Callable, Optional
+from typing import Optional
 
 import tomlkit
 from appdirs import user_config_dir
@@ -77,8 +77,9 @@ class SettingsFileStorage(SettingsStorage):
 
     @staticmethod
     def _update_document(document: tomlkit.TOMLDocument, settings_data: models.PartialSettingsData):
-        for key in settings_data.model_dump(exclude_none=True, exclude={"to_global"}):
-            document[key] = getattr(settings_data, key)
+        print( settings_data.model_dump(exclude_none=True, exclude={"to_global"}))
+        for key, value in settings_data.model_dump(exclude_none=True, exclude={"to_global"}).items():
+            document[key] = value
 
     @staticmethod
     def _write_document(file_path: Path, document: tomlkit.TOMLDocument):

@@ -2,7 +2,10 @@ import hashlib
 from functools import lru_cache
 from pathlib import Path
 
+from platformdirs import user_config_dir
+
 from aiconsole.core.clients.gravatar import GravatarUserProfile, gravatar_client
+from aiconsole.core.settings.models import PartialSettingsData
 from aiconsole.core.settings.project_settings import settings
 from aiconsole.core.users.models import DEFAULT_USERNAME, UserProfile
 from aiconsole.utils.resource_to_path import resource_to_path
@@ -23,6 +26,16 @@ class UserProfileService:
             avatar_url=self._get_default_avatar(email) if email else self._get_default_avatar(),
             gravatar=False,
         )
+
+    def save_avatar(self, file_path: Path):
+        settings().storage.save(
+            PartialSettingsData(
+                user_profile_settings=UserProfile(avatar_url=f"profile_image?img_filename={file_path.name}"), to_global=True
+            ),
+        )
+
+    def get_avatar(self, img_filename: str):
+        return Path(user_config_dir("AIConsole")) / img_filename
 
     @staticmethod
     def get_profile_image_path(img_filename: str) -> Path:
