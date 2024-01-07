@@ -14,8 +14,8 @@ _log = logging.getLogger(__name__)
 
 
 class SettingsFileStorage(SettingsStorage):
-    def configure(self, project_path: Optional[Path] = None, observer: Optional[FileObserver] = None):
-        self.observer = observer or FileObserver()
+    def configure(self, project_path: Optional[Path] = None, observer: Optional[FileObserver] = FileObserver()):
+        self.observer = observer
         self.change_project(project_path)
         _log.debug(f"{self.__class__.__name__} was configured")
 
