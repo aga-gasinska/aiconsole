@@ -1,23 +1,21 @@
 import logging
+from functools import lru_cache
 from pathlib import Path
 from typing import Optional
-import tomlkit
 
+import tomlkit
 from appdirs import user_config_dir
 
 from aiconsole.core.project import project
 from aiconsole.core.project.paths import get_project_directory
 from aiconsole.core.settings import models
-
-from aiconsole.core.settings.base.singleton import Singleton
 from aiconsole.core.settings.base.storage import SettingsStorage
 from aiconsole.core.settings.observer import FileObserver
-
 
 _log = logging.getLogger(__name__)
 
 
-class SettingsFileStorage(SettingsStorage, Singleton):
+class SettingsFileStorage(SettingsStorage):
     def configure(self, project_path: Optional[Path] = None, observer: Optional[FileObserver] = None):
         self.observer = observer or FileObserver()
         self.change_project(project_path)
@@ -67,7 +65,7 @@ class SettingsFileStorage(SettingsStorage, Singleton):
     @staticmethod
     def _get_settings_from_path(file_path: Path | None) -> dict:
         if file_path:
-            data = dict(SettingsFileStorage._get_document(file_path))
+            data = dict(settings_file_storage()._get_document(file_path))
         else:
             data = dict()
         return data
@@ -77,7 +75,7 @@ class SettingsFileStorage(SettingsStorage, Singleton):
         if not file_path.exists():
             return tomlkit.document()
 
-        with file_path.open() as file:
+        with file_path.open("r") as file:
             return tomlkit.loads(file.read())
 
     @staticmethod
@@ -90,3 +88,8 @@ class SettingsFileStorage(SettingsStorage, Singleton):
         file_path.parent.mkdir(parents=True, exist_ok=True)
         with file_path.open("w") as file:
             file.write(document.as_string())
+
+
+@lru_cache
+def settings_file_storage() -> SettingsFileStorage:
+    return SettingsFileStorage()

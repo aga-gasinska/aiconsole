@@ -1,5 +1,6 @@
+from pydantic import BaseModel, EmailStr, Field
+
 from aiconsole.core.assets.models import AssetStatus
-from pydantic import BaseModel, EmailStr, Field, validator
 
 
 class UserProfileSettingsData(BaseModel):

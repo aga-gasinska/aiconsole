@@ -1,5 +1,5 @@
 from aiconsole.core.assets.agents.agent import Agent
-from aiconsole.core.assets.asset import Asset
+from aiconsole.core.assets.models import Asset
 from aiconsole.core.assets.assets import Assets
 from aiconsole.core.assets.materials.material import Material
 from aiconsole.core.project import project

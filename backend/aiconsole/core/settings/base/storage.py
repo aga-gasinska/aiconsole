@@ -1,11 +1,10 @@
-from abc import ABC, abstractmethod
 import logging
+from abc import ABC, abstractmethod
 
 import litellm
 from deepmerge import Merger
 
 from aiconsole.core.settings import models
-
 
 _log = logging.getLogger(__name__)
 

@@ -1,18 +1,16 @@
 import logging
+from functools import lru_cache
 from pathlib import Path
 from typing import Callable
-from aiconsole.utils.BatchingWatchDogHandler import BatchingWatchDogHandler
 
 from watchdog.observers import Observer
 
-from aiconsole.core.settings.base.singleton import Singleton
-from aiconsole.core.settings.base.observer import SettingsObserver
-
+from aiconsole.utils.BatchingWatchDogHandler import BatchingWatchDogHandler
 
 _log = logging.getLogger(__name__)
 
 
-class FileObserver(Singleton):
+class FileObserver:
     def __init__(self):
         self._observer = Observer()
         self.observing: list[Path] = []
@@ -53,3 +51,8 @@ class FileObserver(Singleton):
             str(path.parent),
             recursive=False,
         )
+
+
+@lru_cache
+def file_observer() -> FileObserver:
+    return FileObserver()

@@ -15,9 +15,9 @@
 # limitations under the License.
 import datetime
 import logging
+from functools import lru_cache
 
 from aiconsole.core.settings import models
-from aiconsole.core.settings.base.singleton import Singleton
 from aiconsole.core.settings.base.storage import SettingsStorage
 
 _log = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ class SettingsNotConfiguredException(Exception):
     """Missing configuration of the settings. Call .configure() method."""
 
 
-class Settings(Singleton):
+class Settings:
     def configure(self, storage: SettingsStorage):
         self.settings_data = models.SettingsData()
         self.storage = storage
@@ -52,3 +52,8 @@ class Settings(Singleton):
         ).send_to_all()
 
         self._suppress_notification_until = None
+
+
+@lru_cache
+def settings() -> Settings:
+    return Settings()

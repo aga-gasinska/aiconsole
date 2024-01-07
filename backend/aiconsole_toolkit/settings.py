@@ -4,16 +4,16 @@ from typing import Any
 from aiconsole.core.settings.models import PartialSettingsData
 from aiconsole.core.settings.observer import FileObserver
 
-from aiconsole.core.settings.project_settings import Settings
-from aiconsole.core.settings.storage import SettingsFileStorage
+from aiconsole.core.settings.project_settings import settings
+from aiconsole.core.settings.storage import settings_file_storage
 
 
 def set_code_autorun(autorun: bool) -> None:
-    SettingsFileStorage().configure(project_path=Path("."))
-    Settings().configure(storage=SettingsFileStorage())
-    Settings().storage.save(PartialSettingsData(code_autorun=autorun))
+    settings_file_storage().configure(project_path=Path("."))
+    settings().configure(storage=settings_file_storage())
+    settings().storage.save(PartialSettingsData(code_autorun=autorun))
 
 
 def get_settings() -> dict[str, Any]:
-    asyncio.run(Settings().reload())
-    return Settings().settings_data.model_dump()
+    asyncio.run(settings().reload())
+    return settings().settings_data.model_dump()
