@@ -30,7 +30,8 @@ class UserProfileService:
     def save_avatar(self, file_path: Path):
         settings().storage.save(
             PartialSettingsData(
-                user_profile_settings=UserProfile(avatar_url=f"profile_image?img_filename={file_path.name}"), to_global=True
+                user_profile_settings=UserProfile(avatar_url=f"profile_image?img_filename={file_path.name}"),
+                to_global=True,
             ),
         )
 
