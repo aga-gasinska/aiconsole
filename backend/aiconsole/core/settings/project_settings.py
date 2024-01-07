@@ -29,9 +29,10 @@ class SettingsNotConfiguredException(Exception):
 
 class Settings:
     def configure(self, storage: SettingsStorage):
-        self.settings_data = models.SettingsData()
         self.storage = storage
+        self.settings_data = self.storage.load()
         self._suppress_notification_until: datetime.datetime | None = None
+        _log.debug("Settings were configured")
 
     async def reload(self):
         if not self.storage:
@@ -41,6 +42,7 @@ class Settings:
         self.settings_data = self.storage.load()
 
         await self._notify()
+        _log.debug("Settings were reloaded")
 
     async def _notify(self):
         from aiconsole.api.websockets.server_messages import SettingsServerMessage

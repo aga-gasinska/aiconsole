@@ -1,29 +1,24 @@
+from typing import Optional
 from pydantic import BaseModel, EmailStr, Field
 
 from aiconsole.core.assets.models import AssetStatus
-
-
-class UserProfileSettingsData(BaseModel):
-    username: str | None = None
-    email: EmailStr | None = None
-    avatar_path: str | None = None
-    gravatar: bool = False
+from aiconsole.core.users.models import UserProfile
 
 
 class PartialSettingsData(BaseModel):
-    code_autorun: bool | None = None
-    openai_api_key: str | None = None
-    user_profile_settings: UserProfileSettingsData | None = None
-    materials: dict[str, AssetStatus] = {}
-    materials_to_reset: list[str] = []
-    agents: dict[str, AssetStatus] = {}
-    agents_to_reset: list[str] = []
+    code_autorun: Optional[bool] = None
+    openai_api_key: Optional[str] = None
+    user_profile_settings: Optional[UserProfile] = None
+    materials: Optional[dict[str, AssetStatus]] = None
+    materials_to_reset: Optional[list[str]] = None
+    agents: Optional[dict[str, AssetStatus]] = None
+    agents_to_reset: Optional[list[str]] = None
     to_global: bool = False
 
 
 class SettingsData(BaseModel):
     code_autorun: bool = False
     openai_api_key: str | None = None
-    user_profile: UserProfileSettingsData = Field(default_factory=lambda: UserProfileSettingsData())
+    user_profile: UserProfile | None = None
     materials: dict[str, AssetStatus] = {}
     agents: dict[str, AssetStatus] = {}

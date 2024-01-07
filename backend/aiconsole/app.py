@@ -32,7 +32,7 @@ from aiconsole.core.settings.storage import settings_file_storage
 async def lifespan(app: FastAPI):
     settings_file_storage().configure()
     settings().configure(storage=settings_file_storage())
-    if not project.is_project_initialized():
+    if project.is_project_initialized():
         await project.reinitialize_project()
     yield
 

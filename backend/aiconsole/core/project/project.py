@@ -33,7 +33,7 @@ from aiconsole.core.code_running.run_code import reset_code_interpreters
 from aiconsole.core.code_running.virtual_env.create_dedicated_venv import (
     create_dedicated_venv,
 )
-from aiconsole.core.settings.project_settings import Settings
+from aiconsole.core.settings.project_settings import settings
 
 if TYPE_CHECKING:
     from aiconsole.core.assets import assets
@@ -92,7 +92,7 @@ async def close_project():
 
     await ProjectClosedServerMessage().send_to_all()
 
-    await Settings().reload()  # type: ignore # TODO: do not show setting message "reloaded"
+    await settings().reload()  # type: ignore # TODO: do not show setting message "reloaded"
 
 
 async def reinitialize_project():
@@ -121,7 +121,8 @@ async def reinitialize_project():
 
     await _materials.reload(initial=True)
     await _agents.reload(initial=True)
-    await Settings().reload()  # type: ignore # TODO: do not show setting message "reloaded"
+    settings().storage.change_project(project_path=project_dir)
+    await settings().reload()  # type: ignore # TODO: do not show setting message "reloaded"
 
 
 async def choose_project(path: Path, background_tasks: BackgroundTasks):

@@ -20,6 +20,10 @@ class SettingsStorage(ABC):
     def project_settings(self) -> dict:
         ...
 
+    @abstractmethod
+    def change_project(self, *args, **kwargs) -> None:
+        ...
+
     def load(self) -> models.SettingsData:
         settings = self.merge_settings()
 
@@ -31,6 +35,7 @@ class SettingsStorage(ABC):
         )
 
         litellm.openai_key = settings_data.openai_api_key or "invalid key"
+        _log.debug(f"LiteLLM openai_key was set to {litellm.openai_key[-5:]}")
 
         _log.info("Loaded settings")
         return settings_data

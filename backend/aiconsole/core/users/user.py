@@ -3,12 +3,11 @@ from functools import lru_cache
 from pathlib import Path
 
 from aiconsole.core.clients.gravatar import GravatarUserProfile, gravatar_client
-from aiconsole.core.settings.project_settings import get_aiconsole_settings
-from aiconsole.core.users.models import UserProfile
+from aiconsole.core.settings.project_settings import settings
+from aiconsole.core.users.models import UserProfile, DEFAULT_USERNAME
 from aiconsole.utils.resource_to_path import resource_to_path
 
 AVATARS_PATH = "aiconsole.preinstalled.avatars"
-DEFAULT_USERNAME = "User"
 
 
 class UserProfileService:
@@ -30,7 +29,7 @@ class UserProfileService:
         return resource_to_path(AVATARS_PATH) / img_filename
 
     def _get_default_avatar(self, email: str | None = None) -> str:
-        key = email or get_aiconsole_settings().get_openai_api_key() or "some_key"
+        key = email or settings().settings_data.openai_api_key or "some_key"
         img_filename = self._deterministic_choice(
             blob=key, choices=list(resource_to_path(resource=AVATARS_PATH).glob(pattern="*"))
         ).name

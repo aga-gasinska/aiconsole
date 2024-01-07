@@ -1,13 +1,11 @@
 import logging
 from functools import lru_cache
 from pathlib import Path
-from typing import Optional
+from typing import Callable, Optional
 
 import tomlkit
 from appdirs import user_config_dir
 
-from aiconsole.core.project import project
-from aiconsole.core.project.paths import get_project_directory
 from aiconsole.core.settings import models
 from aiconsole.core.settings.base.storage import SettingsStorage
 from aiconsole.core.settings.observer import FileObserver
@@ -19,11 +17,11 @@ class SettingsFileStorage(SettingsStorage):
     def configure(self, project_path: Optional[Path] = None, observer: Optional[FileObserver] = None):
         self.observer = observer or FileObserver()
         self.change_project(project_path)
-        self.load()
+        _log.debug(f"{self.__class__.__name__} was configured")
 
     @property
     def global_settings_file_path(self):
-        return Path(user_config_dir("aiconsole")) / "settings.toml"
+        return Path(user_config_dir("AIConsole")) / "settings.toml"
 
     @property
     def project_settings_file_path(self):
@@ -38,15 +36,12 @@ class SettingsFileStorage(SettingsStorage):
         return self._get_settings_from_path(self.project_settings_file_path)
 
     def change_project(self, project_path: Optional[Path] = None):
-        if project_path is None and project.is_project_initialized():
-            project_path = get_project_directory()
-
         self._project_settings_file_path = project_path / "settings.toml" if project_path else None
         self.load()
         self._start_observer()
 
-    def save(self, settings_data: models.PartialSettingsData, to_global: bool = False):
-        file_path = self.global_settings_file_path if to_global else self.project_settings_file_path
+    def save(self, settings_data: models.PartialSettingsData):
+        file_path = self.global_settings_file_path if settings_data.to_global else self.project_settings_file_path
         if not file_path:
             raise ValueError("Cannot save settings, path not specified")
 
@@ -55,12 +50,14 @@ class SettingsFileStorage(SettingsStorage):
         self._write_document(file_path, document)
 
     def _start_observer(self):
+        from aiconsole.core.settings.project_settings import settings
+
         file_paths = [self.global_settings_file_path]
         if self.project_settings_file_path:
             file_paths.append(self.project_settings_file_path)
 
         if self.observer:
-            self.observer.start(file_paths=file_paths, action=self.load)
+            self.observer.start(file_paths=file_paths, action=settings().reload)
 
     @staticmethod
     def _get_settings_from_path(file_path: Path | None) -> dict:
@@ -80,7 +77,7 @@ class SettingsFileStorage(SettingsStorage):
 
     @staticmethod
     def _update_document(document: tomlkit.TOMLDocument, settings_data: models.PartialSettingsData):
-        for key in settings_data.model_dump(exclude_none=True):
+        for key in settings_data.model_dump(exclude_none=True, exclude={"to_global"}):
             document[key] = getattr(settings_data, key)
 
     @staticmethod

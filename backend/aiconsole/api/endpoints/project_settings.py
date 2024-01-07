@@ -13,24 +13,28 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from fastapi import APIRouter
+import logging
+from fastapi import APIRouter, Depends
 from starlette.responses import JSONResponse
 
-from aiconsole.core.settings.project_settings import Settings
 from aiconsole.core.settings.models import PartialSettingsData
+from aiconsole.core.settings.project_settings import Settings, settings
+
+_log = logging.getLogger(__name__)
 
 router = APIRouter()
 
 
 @router.patch("")
-async def patch(patch_data: PartialSettingsData):
+async def patch(patch_data: PartialSettingsData, settings: Settings = Depends(settings)):
     try:
-        Settings().storage.save(settings_data=patch_data, to_global=patch_data.to_global)
+        _log.debug(f"PATCHingh settings with {patch_data}")
+        settings.storage.save(settings_data=patch_data)
         return JSONResponse({"status": "ok"})
     except ValueError as value_error:
         return JSONResponse({"error": f"{value_error}"}, status_code=406)
 
 
 @router.get("")
-async def get():
-    return JSONResponse(Settings().settings_data.model_dump())
+async def get(settings: Settings = Depends(settings)):
+    return JSONResponse(settings.settings_data.model_dump())

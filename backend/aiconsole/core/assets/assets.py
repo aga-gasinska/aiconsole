@@ -30,7 +30,7 @@ from aiconsole.core.assets.models import Asset, AssetLocation, AssetStatus, Asse
 from aiconsole.core.project import project
 from aiconsole.core.project.paths import get_project_assets_directory
 from aiconsole.core.settings.models import PartialSettingsData
-from aiconsole.core.settings.project_settings import Settings
+from aiconsole.core.settings.project_settings import settings
 from aiconsole.utils.BatchingWatchDogHandler import BatchingWatchDogHandler
 
 _log = logging.getLogger(__name__)
@@ -155,7 +155,7 @@ class Assets:
 
     @staticmethod
     def get_status(asset_type: AssetType, id: str) -> AssetStatus:
-        s = Settings().settings_data
+        s = settings().settings_data
 
         if asset_type == AssetType.MATERIAL:
             if id in s.materials:
@@ -176,9 +176,9 @@ class Assets:
     @staticmethod
     def set_status(asset_type: AssetType, id: str, status: AssetStatus, to_global: bool = False) -> None:
         if asset_type == AssetType.MATERIAL:
-            Settings().storage.save(PartialSettingsData(materials={id: status}), to_global=to_global)
+            settings().storage.save(PartialSettingsData(materials={id: status}), to_global=to_global)
         elif asset_type == AssetType.AGENT:
-            Settings().storage.save(PartialSettingsData(agents={id: status}), to_global=to_global)
+            settings().storage.save(PartialSettingsData(agents={id: status}), to_global=to_global)
         else:
             raise ValueError(f"Unknown asset type {asset_type}")
 
@@ -195,5 +195,5 @@ class Assets:
         else:
             raise ValueError(f"Unknown asset type {asset_type}")
 
-        Settings().storage.save(partial_settings)
-        Settings().storage.save(partial_settings, to_global=True)
+        settings().storage.save(partial_settings)
+        settings().storage.save(partial_settings, to_global=True)
