@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
 from fastapi.responses import FileResponse, JSONResponse
 
 from aiconsole.api.endpoints.registry import agents
@@ -62,6 +62,11 @@ async def partially_update_agent(agent_id: str, agent: Agent, agents_service: Ag
         await agents_service.partially_update_agent(agent_id=agent_id, agent=agent)
     except AssetWithGivenNameAlreadyExistError:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Agent with given name already exists")
+
+
+@router.post("/{agent_id}/avatar")
+async def set_agent_avatar(agent_id: str, avatar: UploadFile = File(...), agents_service: Agents = Depends(agents)):
+    await agents_service.set_agent_avatar(agent_id=agent_id, avatar=avatar)
 
 
 @router.post("/{agent_id}")
