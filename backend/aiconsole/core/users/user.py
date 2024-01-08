@@ -2,15 +2,14 @@ import hashlib
 from functools import lru_cache
 from pathlib import Path
 
-from platformdirs import user_config_dir
-
+from aiconsole.consts import AICONSOLE_USER_CONFIG_DIR
 from aiconsole.core.clients.gravatar import GravatarUserProfile, gravatar_client
 from aiconsole.core.settings.models import PartialSettingsData
 from aiconsole.core.settings.project_settings import settings
 from aiconsole.core.users.models import DEFAULT_USERNAME, UserProfile
 from aiconsole.utils.resource_to_path import resource_to_path
 
-AVATARS_PATH = "aiconsole.preinstalled.avatars"
+DEFAULT_AVATARS_PATH = "aiconsole.preinstalled.avatars"
 
 
 class UserProfileService:
@@ -27,7 +26,7 @@ class UserProfileService:
             gravatar=False,
         )
 
-    def save_avatar(self, file_path: Path):
+    def save_avatar(self, file_path: Path) -> None:
         settings().storage.save(
             PartialSettingsData(
                 user_profile_settings=UserProfile(avatar_url=f"profile_image?img_filename={file_path.name}"),
@@ -35,17 +34,17 @@ class UserProfileService:
             ),
         )
 
-    def get_avatar(self, img_filename: str):
-        return Path(user_config_dir("AIConsole")) / img_filename
+    def get_avatar(self, img_filename: str) -> Path:
+        return AICONSOLE_USER_CONFIG_DIR() / "avatars" / img_filename
 
     @staticmethod
     def get_profile_image_path(img_filename: str) -> Path:
-        return resource_to_path(AVATARS_PATH) / img_filename
+        return resource_to_path(DEFAULT_AVATARS_PATH) / img_filename
 
     def _get_default_avatar(self, email: str | None = None) -> str:
         key = email or settings().settings_data.openai_api_key or "some_key"
         img_filename = self._deterministic_choice(
-            blob=key, choices=list(resource_to_path(resource=AVATARS_PATH).glob(pattern="*"))
+            blob=key, choices=list(resource_to_path(resource=DEFAULT_AVATARS_PATH).glob(pattern="*"))
         ).name
         return f"profile_image?img_filename={img_filename}"
 

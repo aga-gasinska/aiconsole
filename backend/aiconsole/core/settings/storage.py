@@ -4,8 +4,8 @@ from pathlib import Path
 from typing import Optional
 
 import tomlkit
-from appdirs import user_config_dir
 
+from aiconsole.consts import AICONSOLE_USER_CONFIG_DIR
 from aiconsole.core.settings import models
 from aiconsole.core.settings.base.storage import SettingsStorage
 from aiconsole.core.settings.observer import FileObserver
@@ -21,7 +21,7 @@ class SettingsFileStorage(SettingsStorage):
 
     @property
     def global_settings_file_path(self):
-        return Path(user_config_dir("AIConsole")) / "settings.toml"
+        return AICONSOLE_USER_CONFIG_DIR() / "settings.toml"
 
     @property
     def project_settings_file_path(self):
