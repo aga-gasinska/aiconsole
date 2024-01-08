@@ -15,11 +15,15 @@
 # limitations under the License.
 from typing import Optional
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import FileResponse
 
 from aiconsole.core.users.models import UserProfile
-from aiconsole.core.users.user import UserProfileService, user_profile_service
+from aiconsole.core.users.user import (
+    MissingFileName,
+    UserProfileService,
+    user_profile_service,
+)
 
 router = APIRouter()
 
@@ -44,13 +48,12 @@ def get_profile_image(
     return FileResponse(str(file_path))
 
 
-@router.post("/profile_image")
-async def set_profile_image(
+@router.post("/profile_image", status_code=status.HTTP_201_CREATED)
+def set_profile_image(
     avatar: UploadFile = File(...),
     user_profile_service: UserProfileService = Depends(user_profile_service),
 ):
-    file_path = user_profile_service.get_avatar(avatar.filename)
-    with open(file_path, "wb+") as file_object:
-        file_object.write(avatar.file.read())
-    user_profile_service.save_avatar(file_path=file_path)
-    return {"info": "Avatar uploaded successfully", "filename": avatar.filename}
+    try:
+        user_profile_service.save_avatar(file=avatar.file, file_name=avatar.filename, content_type=avatar.content_type)
+    except MissingFileName:
+        return HTTPException(status_code=400, detail="Missing a file name.")

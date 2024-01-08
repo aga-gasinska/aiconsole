@@ -27,9 +27,8 @@ router = APIRouter()
 
 
 @router.patch("")
-async def patch(patch_data: PartialSettingsData, settings: Settings = Depends(settings)):
+async def partially_update_project_settings(patch_data: PartialSettingsData, settings: Settings = Depends(settings)):
     try:
-        _log.debug(f"PATCHingh settings with {patch_data}")
         settings.storage.save(settings_data=patch_data)
         return JSONResponse({"status": "ok"})
     except ValueError as value_error:
@@ -37,5 +36,5 @@ async def patch(patch_data: PartialSettingsData, settings: Settings = Depends(se
 
 
 @router.get("")
-async def get(settings: Settings = Depends(settings)):
+async def get_project_settings(settings: Settings = Depends(settings)):
     return JSONResponse(settings.settings_data.model_dump())

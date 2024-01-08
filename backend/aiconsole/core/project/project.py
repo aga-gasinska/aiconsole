@@ -92,7 +92,7 @@ async def close_project():
 
     await ProjectClosedServerMessage().send_to_all()
 
-    await settings().reload()  # type: ignore # TODO: do not show setting message "reloaded"
+    await settings().reload()
 
 
 async def reinitialize_project():
@@ -122,7 +122,7 @@ async def reinitialize_project():
     await _materials.reload(initial=True)
     await _agents.reload(initial=True)
     settings().storage.change_project(project_path=project_dir)
-    await settings().reload()  # type: ignore # TODO: do not show setting message "reloaded"
+    await settings().reload()
 
 
 async def choose_project(path: Path, background_tasks: BackgroundTasks):

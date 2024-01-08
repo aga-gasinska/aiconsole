@@ -67,7 +67,7 @@ class Assets:
         Return all loaded assets with a specific status.
         """
         return [
-            assets[0] for assets in self._assets.values() if self.get_status(self.asset_type, assets[0].id) in [status]
+            assets[0] for assets in self._assets.values() if self.get_status(self.asset_type, assets[0].id) == status
         ]
 
     async def save_asset(self, asset: Asset, old_asset_id: str, create: bool):
@@ -176,9 +176,9 @@ class Assets:
     @staticmethod
     def set_status(asset_type: AssetType, id: str, status: AssetStatus, to_global: bool = False) -> None:
         if asset_type == AssetType.MATERIAL:
-            settings().storage.save(PartialSettingsData(materials={id: status}), to_global=to_global)
+            settings().storage.save(PartialSettingsData(materials={id: status}, to_global=to_global))
         elif asset_type == AssetType.AGENT:
-            settings().storage.save(PartialSettingsData(agents={id: status}), to_global=to_global)
+            settings().storage.save(PartialSettingsData(agents={id: status}, to_global=to_global))
         else:
             raise ValueError(f"Unknown asset type {asset_type}")
 
@@ -196,4 +196,5 @@ class Assets:
             raise ValueError(f"Unknown asset type {asset_type}")
 
         settings().storage.save(partial_settings)
-        settings().storage.save(partial_settings, to_global=True)
+        partial_settings.to_global = True
+        settings().storage.save(partial_settings)
