@@ -25,6 +25,7 @@ from aiconsole.api.utils.asset_status_change import asset_status_change
 from aiconsole.api.utils.status_change_post_body import StatusChangePostBody
 from aiconsole.core.assets.agents.agent import Agent, AgentWithStatus
 from aiconsole.core.assets.asset import AssetLocation, AssetStatus, AssetType
+from aiconsole.core.assets.fs.exceptions import CannotSaveAgentWithIdUserError
 from aiconsole.core.gpt.consts import GPTMode
 from aiconsole.core.project import project
 from aiconsole.core.project.paths import (
@@ -62,6 +63,8 @@ async def partially_update_agent(agent_id: str, agent: Agent, agents_service: Ag
         await agents_service.partially_update_agent(agent_id=agent_id, agent=agent)
     except AssetWithGivenNameAlreadyExistError:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Agent with given name already exists")
+    except CannotSaveAgentWithIdUserError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot create agent with 'user' name")
 
 
 @router.post("/{agent_id}")
@@ -70,6 +73,8 @@ async def create_agent(agent_id: str, agent: Agent, agents_service: Agents = Dep
         await agents_service.create_agent(agent_id=agent_id, agent=agent)
     except AssetWithGivenNameAlreadyExistError:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Agent with given name already exists")
+    except CannotSaveAgentWithIdUserError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot create agent with 'user' name")
 
 
 @router.post("/{agent_id}/status-change")

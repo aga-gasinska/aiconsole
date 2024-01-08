@@ -1,0 +1,2 @@
+class CannotSaveAgentWithIdUserError(Exception):
+    pass
