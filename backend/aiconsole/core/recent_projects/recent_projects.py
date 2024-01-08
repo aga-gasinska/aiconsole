@@ -16,6 +16,7 @@
 
 import os
 from pathlib import Path
+
 from aiconsole.consts import AICONSOLE_USER_CONFIG_DIR, MAX_RECENT_PROJECTS
 from aiconsole.core.chat.list_possible_historic_chat_ids import (
     list_possible_historic_chat_ids,
