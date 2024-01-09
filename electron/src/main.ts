@@ -302,6 +302,7 @@ ipcMain.on('request-backend-port', async (event) => {
 
       window.backendProcess.on('error', (e: Error) => {
         error(window.browserWindow, `Error from backend process: ${e.message}`);
+        console.log(`Error from backend process: ${e.message}`); // Added console log
       });
 
       window.backendProcess.stdout.on('data', (data: Buffer) => {
@@ -310,7 +311,7 @@ ipcMain.on('request-backend-port', async (event) => {
           data = Uint8Array.prototype.slice.call(data, 0, -1);
         }
         log(window.browserWindow, `${data}`);
-        console.log(`${data}`);
+        console.log(`${data}`); // Added console log
       });
 
       window.backendProcess.stderr.on('data', (data: Buffer) => {
@@ -320,11 +321,13 @@ ipcMain.on('request-backend-port', async (event) => {
         }
         // dialog.showErrorBox("Backend Error", data.toString());
         error(window.browserWindow, `${data}`);
+        console.log(`${data}`); // Added console log
       });
 
       window.backendProcess.on('exit', (code: string) => {
         window.browserWindow.webContents.send('backend-exit');
         log(window.browserWindow, `FastAPI server exited with code ${code}`);
+        console.log(`FastAPI server exited with code ${code}`); // Added console log
       });
 
       //wait for the server to come up online
@@ -332,6 +335,7 @@ ipcMain.on('request-backend-port', async (event) => {
     }
   }
 });
+
 
 app.whenReady().then(() => {
   ipcMain.handle('open-dir-picker', handleDirPicker);
