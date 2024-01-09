@@ -13,8 +13,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from aiconsole.init import run_aiconsole
+import logging
+import pathlib
 
 if __name__ == "__main__":
+    logging.basicConfig(filename=pathlib.Path("log1234"))
+    from aiconsole.init import run_aiconsole
+
     run_aiconsole(dev=False)
